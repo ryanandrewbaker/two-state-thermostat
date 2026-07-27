@@ -4,11 +4,14 @@ import {
   clampAngleToArc,
   describeArcState,
   getArcGeometry,
+  getArcRemainingSegments,
+  getStateLabelTone,
   targetFromAngle,
   tempToAngle,
 } from "../state";
 import { dialStyles } from "../styles";
 import type { CardViewState, ClimateRange, TargetAdjustment } from "../types";
+import type { ArcAngleSegment } from "../state";
 
 function polar(cx: number, cy: number, r: number, angleDeg: number) {
   const angle = (angleDeg * Math.PI) / 180;
@@ -105,22 +108,16 @@ export class ClimateDial extends LitElement {
   }
 
   render() {
-    const { climate, operatingLabel } = this.viewState;
+    const { climate, operatingLabel, operatingState } = this.viewState;
     const displayClimate = this.displayClimate;
     const arc = this.arcState;
     const geo = this.geometry;
+    const segments = getArcRemainingSegments(geo, operatingState);
+    const labelTone = getStateLabelTone(operatingState);
     const cx = 100;
     const cy = 100;
     const r = 78;
     const trackPath = describeArc(cx, cy, r, geo.startAngle, geo.endAngle);
-    const heatPath =
-      geo.lowAngle !== null ? describeArc(cx, cy, r, geo.startAngle, geo.lowAngle) : "";
-    const coolPath =
-      geo.highAngle !== null && geo.lowAngle !== null
-        ? describeArc(cx, cy, r, geo.highAngle, geo.endAngle)
-        : geo.highAngle !== null
-          ? describeArc(cx, cy, r, geo.highAngle, geo.endAngle)
-          : "";
     const temp = this.splitTemp(climate.current);
     const lowKnob = geo.lowAngle !== null ? polar(cx, cy, r, geo.lowAngle) : null;
     const highKnob = geo.highAngle !== null ? polar(cx, cy, r, geo.highAngle) : null;
@@ -133,22 +130,26 @@ export class ClimateDial extends LitElement {
       <div class="dial-wrap ${arc.subdued ? "subdued" : ""}">
         <svg viewBox="0 0 200 200" aria-hidden="true">
           <path class="track" d=${trackPath}></path>
-          ${
-            heatPath
-              ? svg`<path
-                class="arc-heat ${arc.warmActive ? "active" : ""} ${arc.warmStrong ? "strong" : ""}"
-                d=${heatPath}
-              ></path>`
-              : null
-          }
-          ${
-            coolPath
-              ? svg`<path
-                class="arc-cool ${arc.coolActive ? "active" : ""} ${arc.coolStrong ? "strong" : ""}"
-                d=${coolPath}
-              ></path>`
-              : null
-          }
+          ${this._renderArcSegment(cx, cy, r, segments.heatBase, "heat", "base", arc)}
+          ${this._renderArcSegment(
+            cx,
+            cy,
+            r,
+            segments.heatRemaining,
+            "heat",
+            "remaining",
+            arc,
+          )}
+          ${this._renderArcSegment(cx, cy, r, segments.coolBase, "cool", "base", arc)}
+          ${this._renderArcSegment(
+            cx,
+            cy,
+            r,
+            segments.coolRemaining,
+            "cool",
+            "remaining",
+            arc,
+          )}
           ${
             currentDot
               ? svg`<circle class="current-dot" cx=${currentDot.x} cy=${currentDot.y} r="3"></circle>`
@@ -158,7 +159,13 @@ export class ClimateDial extends LitElement {
           ${this._renderKnob("high", highKnob, targetHigh, "Cooling target")}
         </svg>
         <div class="center">
-          <div class="state-label">${operatingLabel}</div>
+          <div
+            class="state-label ${
+              labelTone === "heat" ? "heating" : labelTone === "cool" ? "cooling" : ""
+            }"
+          >
+            ${operatingLabel}
+          </div>
           <div
             class="temperature"
             aria-label="Current temperature ${this.formatTemp(climate.current)} degrees"
@@ -168,11 +175,39 @@ export class ClimateDial extends LitElement {
             <span class="temp-unit">°C</span>
           </div>
           <div class="range">
-            ${this.formatTemp(targetLow)} · ${this.formatTemp(targetHigh)}
+            <span class="range-heat ${labelTone === "heat" ? "active" : ""}"
+              >${this.formatTemp(targetLow)}</span
+            >
+            ·
+            <span class="range-cool ${labelTone === "cool" ? "active" : ""}"
+              >${this.formatTemp(targetHigh)}</span
+            >
           </div>
         </div>
       </div>
     `;
+  }
+
+  private _renderArcSegment(
+    cx: number,
+    cy: number,
+    r: number,
+    segment: ArcAngleSegment | null,
+    kind: "heat" | "cool",
+    layer: "base" | "remaining",
+    arc: ReturnType<typeof describeArcState>,
+  ) {
+    if (!segment) return null;
+
+    const path = describeArc(cx, cy, r, segment.start, segment.end);
+    const warm = kind === "heat";
+    const active = warm ? arc.warmActive : arc.coolActive;
+    const strong = layer === "remaining" && (warm ? arc.warmStrong : arc.coolStrong);
+
+    return svg`<path
+      class="arc-${kind} ${layer} ${active ? "active" : ""} ${strong ? "strong" : ""}"
+      d=${path}
+    ></path>`;
   }
 
   private _renderKnob(

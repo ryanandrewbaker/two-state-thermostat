@@ -101,23 +101,24 @@ export class TwoStageThermostatCard extends LitElement {
         <div class="card">
           <div class="title">${view.title}</div>
 
-          <climate-dial
-            .viewState=${view}
-            .disabled=${disabled}
-            .minimumTargetSeparation=${getMinimumTargetSeparation(resolved)}
-            @target-change=${this._handleTargetChange}
-          ></climate-dial>
-
-          <div class="controls-row">
+          <div class="dial-section">
+            <climate-dial
+              .viewState=${view}
+              .disabled=${disabled}
+              .minimumTargetSeparation=${getMinimumTargetSeparation(resolved)}
+              @target-change=${this._handleTargetChange}
+            ></climate-dial>
             <power-button
               .on=${view.climate.isOn}
               .disabled=${disabled}
               @power-toggle=${this._togglePower}
             ></power-button>
+          </div>
 
-            ${
-              view.boost.available
-                ? html`
+          ${
+            view.boost.available
+              ? html`
+                  <div class="controls-row">
                     <boost-button
                       .active=${view.boost.active}
                       .disabled=${disabled}
@@ -126,11 +127,10 @@ export class TwoStageThermostatCard extends LitElement {
                       @boost-press=${this._handleBoost}
                       @boost-cancel=${this._handleBoostCancel}
                     ></boost-button>
-                  `
-                : nothing
-            }
-          </div>
-
+                  </div>
+                `
+              : nothing
+          }
           ${
             view.fan.available
               ? html`

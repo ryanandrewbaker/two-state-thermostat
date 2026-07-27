@@ -50,6 +50,21 @@ export const cardStyles = css`
     flex-wrap: wrap;
   }
 
+  .dial-section {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .dial-section power-button {
+    position: absolute;
+    left: 50%;
+    bottom: 11%;
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+
   .secondary-status {
     display: flex;
     flex-direction: column;
@@ -161,7 +176,6 @@ export const dialStyles = css`
 
   .dial-wrap {
     width: 100%;
-    max-width: 320px;
     margin: 0 auto;
     aspect-ratio: 1;
     position: relative;
@@ -183,41 +197,57 @@ export const dialStyles = css`
   .arc-heat {
     fill: none;
     stroke: var(--heat-color);
-    stroke-width: 12;
     stroke-linecap: round;
-    opacity: 0.35;
+    opacity: 0.3;
     transition:
       opacity 0.2s ease,
       stroke-width 0.2s ease;
   }
 
-  .arc-heat.active {
-    opacity: 0.85;
+  .arc-heat.base {
+    stroke-width: 10;
   }
 
-  .arc-heat.strong {
-    opacity: 1;
+  .arc-heat.base.active {
+    opacity: 0.55;
+  }
+
+  .arc-heat.remaining {
     stroke-width: 14;
+    opacity: 0.95;
+  }
+
+  .arc-heat.remaining.strong {
+    opacity: 1;
+    stroke-width: 16;
   }
 
   .arc-cool {
     fill: none;
     stroke: var(--cool-color);
-    stroke-width: 12;
     stroke-linecap: round;
-    opacity: 0.35;
+    opacity: 0.3;
     transition:
       opacity 0.2s ease,
       stroke-width 0.2s ease;
   }
 
-  .arc-cool.active {
-    opacity: 0.85;
+  .arc-cool.base {
+    stroke-width: 10;
   }
 
-  .arc-cool.strong {
-    opacity: 1;
+  .arc-cool.base.active {
+    opacity: 0.55;
+  }
+
+  .arc-cool.remaining {
     stroke-width: 14;
+    opacity: 0.95;
+  }
+
+  .arc-cool.remaining.strong {
+    opacity: 1;
+    stroke-width: 16;
   }
 
   .subdued .arc-heat,
@@ -271,6 +301,16 @@ export const dialStyles = css`
     margin-bottom: 4px;
   }
 
+  .state-label.heating {
+    color: var(--heat-color);
+    font-weight: 500;
+  }
+
+  .state-label.cooling {
+    color: var(--cool-color);
+    font-weight: 500;
+  }
+
   .temperature {
     display: flex;
     align-items: flex-start;
@@ -300,6 +340,19 @@ export const dialStyles = css`
     margin-top: 8px;
     font-size: 0.8125rem;
     color: var(--secondary-text-color);
+  }
+
+  .range-heat.active,
+  .range-cool.active {
+    font-weight: 500;
+  }
+
+  .range-heat.active {
+    color: var(--heat-color);
+  }
+
+  .range-cool.active {
+    color: var(--cool-color);
   }
 `;
 

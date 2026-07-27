@@ -6,9 +6,11 @@ import {
   clampTargetRange,
   formatTimerRemaining,
   getArcGeometry,
+  getArcRemainingSegments,
   getDegradedOperatingLabel,
   getFanState,
   getOperatingLabel,
+  getStateLabelTone,
   normalizeOperatingState,
   normalizeOperatingStateFromHvacAction,
   roundToStep,
@@ -195,6 +197,52 @@ describe("arc geometry", () => {
     const adjusted = targetFromAngle(180, "low", climate, 1);
     expect(adjusted?.targetLow).toBeGreaterThanOrEqual(climate.minTemp);
     expect(adjusted!.targetHigh - adjusted!.targetLow).toBeGreaterThanOrEqual(1);
+  });
+
+  it("splits heating arc into base and remaining segments", () => {
+    const geometry = getArcGeometry({
+      current: 23.1,
+      targetLow: 24.5,
+      targetHigh: 27,
+      minTemp: 16,
+      maxTemp: 30,
+      step: 0.5,
+      hvacMode: "heat_cool",
+      isOn: true,
+    });
+
+    const segments = getArcRemainingSegments(geometry, "maintain_heating");
+    expect(segments.heatBase).not.toBeNull();
+    expect(segments.heatRemaining).not.toBeNull();
+    expect(segments.heatRemaining!.start).toBe(geometry.currentAngle);
+    expect(segments.heatRemaining!.end).toBe(geometry.lowAngle);
+  });
+
+  it("splits cooling arc into base and remaining segments", () => {
+    const geometry = getArcGeometry({
+      current: 28,
+      targetLow: 22,
+      targetHigh: 27,
+      minTemp: 16,
+      maxTemp: 30,
+      step: 0.5,
+      hvacMode: "heat_cool",
+      isOn: true,
+    });
+
+    const segments = getArcRemainingSegments(geometry, "maintain_cooling");
+    expect(segments.coolBase).not.toBeNull();
+    expect(segments.coolRemaining).not.toBeNull();
+    expect(segments.coolRemaining!.start).toBe(geometry.highAngle);
+    expect(segments.coolRemaining!.end).toBe(geometry.currentAngle);
+  });
+});
+
+describe("getStateLabelTone", () => {
+  it("returns heat and cool tones for active states", () => {
+    expect(getStateLabelTone("maintain_heating")).toBe("heat");
+    expect(getStateLabelTone("boost_cooling")).toBe("cool");
+    expect(getStateLabelTone("idle")).toBe("neutral");
   });
 });
 

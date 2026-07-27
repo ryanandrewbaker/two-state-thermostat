@@ -577,6 +577,80 @@ export function getArcGeometry(climate: ClimateRange): ArcGeometry {
   };
 }
 
+export type StateLabelTone = "heat" | "cool" | "neutral";
+
+export function getStateLabelTone(state: OperatingStateKey): StateLabelTone {
+  switch (state) {
+    case "boost_heating":
+    case "maintain_heating":
+      return "heat";
+    case "boost_cooling":
+    case "maintain_cooling":
+      return "cool";
+    default:
+      return "neutral";
+  }
+}
+
+export function isHeatingState(state: OperatingStateKey): boolean {
+  return state === "boost_heating" || state === "maintain_heating";
+}
+
+export function isCoolingState(state: OperatingStateKey): boolean {
+  return state === "boost_cooling" || state === "maintain_cooling";
+}
+
+export interface ArcAngleSegment {
+  start: number;
+  end: number;
+}
+
+export interface ArcRemainingSegments {
+  heatBase: ArcAngleSegment | null;
+  heatRemaining: ArcAngleSegment | null;
+  coolBase: ArcAngleSegment | null;
+  coolRemaining: ArcAngleSegment | null;
+}
+
+export function getArcRemainingSegments(
+  geo: ArcGeometry,
+  operatingState: OperatingStateKey,
+): ArcRemainingSegments {
+  const { startAngle, endAngle, currentAngle, lowAngle, highAngle } = geo;
+  let heatBase: ArcAngleSegment | null = null;
+  let heatRemaining: ArcAngleSegment | null = null;
+  let coolBase: ArcAngleSegment | null = null;
+  let coolRemaining: ArcAngleSegment | null = null;
+
+  if (lowAngle !== null) {
+    if (
+      isHeatingState(operatingState) &&
+      currentAngle !== null &&
+      currentAngle < lowAngle
+    ) {
+      heatBase = { start: startAngle, end: currentAngle };
+      heatRemaining = { start: currentAngle, end: lowAngle };
+    } else {
+      heatBase = { start: startAngle, end: lowAngle };
+    }
+  }
+
+  if (highAngle !== null) {
+    if (
+      isCoolingState(operatingState) &&
+      currentAngle !== null &&
+      currentAngle > highAngle
+    ) {
+      coolRemaining = { start: highAngle, end: currentAngle };
+      coolBase = { start: currentAngle, end: endAngle };
+    } else {
+      coolBase = { start: highAngle, end: endAngle };
+    }
+  }
+
+  return { heatBase, heatRemaining, coolBase, coolRemaining };
+}
+
 export function getResolvedPowerOnMode(config: ResolvedCardConfig): string {
   return config.power_on_mode ?? DEFAULT_POWER_ON_MODE;
 }

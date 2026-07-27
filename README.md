@@ -134,16 +134,26 @@ The built file is committed to the repository so HACS can install directly from 
 
 ## Releases
 
-Tagged releases (`v*`) trigger GitHub Actions to build, validate with HACS, and attach `dist/two-state-thermostat.js` to the release.
+Tagged releases (`v*`) trigger GitHub Actions to build and attach `dist/two-state-thermostat.js` to the release.
 
 ```bash
 npm run lint && npm run typecheck && npm test && npm run build
 git add dist/two-state-thermostat.js
 git commit -m "Prepare release v0.1.0"
-git tag v0.1.0
+git tag -f v0.1.0 main
 git push origin main
+git push origin :refs/tags/v0.1.0
 git push origin v0.1.0
 ```
+
+### GitHub repository settings (recommended)
+
+For HACS validation checks to pass in CI, set these on the GitHub repository **Settings** page:
+
+- **Description:** `Home Assistant Lovelace card for dual-range climate control with Boost and Maintain feedback`
+- **Topics:** `home-assistant`, `lovelace`, `custom-card`, `hacs`, `thermostat`, `climate`
+
+These are not required to install via **HACS → Custom repositories**, but they are required for the HACS validation workflow to pass.
 
 ## Licence
 

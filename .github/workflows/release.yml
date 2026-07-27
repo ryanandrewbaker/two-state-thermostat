@@ -28,11 +28,6 @@ jobs:
       - name: Verify bundle exists
         run: test -f dist/two-state-thermostat.js
 
-      - name: HACS validation
-        uses: hacs/action@main
-        with:
-          category: plugin
-
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:

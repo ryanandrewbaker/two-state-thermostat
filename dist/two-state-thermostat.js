@@ -534,7 +534,7 @@ function f(e) {
 function F(e) {
   return f({ ...e, state: !0, attribute: !1 });
 }
-const $t = "two-state-thermostat", Tt = "two-state-thermostat", se = "Two State Thermostat", He = "0.3.0", Fe = "https://github.com/ryanandrewbaker/two-state-thermostat", Pt = "heat_cool", Ot = 0.5, kt = 1, Ie = 5, ze = 35, ae = [
+const $t = "two-state-thermostat", Tt = "two-state-thermostat", se = "Two State Thermostat", He = "0.3.1", Fe = "https://github.com/ryanandrewbaker/two-state-thermostat", Pt = "heat_cool", Ot = 0.5, kt = 1, Ie = 5, ze = 35, ae = [
   { value: "quiet", label: "Quiet" },
   { value: "low", label: "Low" },
   { value: "medium", label: "Medium" },

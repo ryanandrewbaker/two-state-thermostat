@@ -1,0 +1,47 @@
+---
+description: Bump version and tag releases so HACS detects updates
+alwaysApply: true
+---
+
+# Release versioning (HACS)
+
+When shipping user-facing changes to this repo, **do not push to `main` without bumping the version and preparing a HACS-visible release**.
+
+HACS does **not** treat commits on `main` as a new version. It uses **Git tags / GitHub Releases** (`v*`).
+
+## Before push (required for HA updates)
+
+1. **Bump version** (semver) in:
+   - `package.json`
+   - `src/constants.ts` (`CARD_VERSION`)
+   - `CHANGELOG.md` (new section for the version)
+2. **Rebuild** the committed bundle:
+   - `npm run build`
+   - Include updated `dist/two-state-thermostat.js` and `.map` in the commit
+3. **Tag and push the tag** after the commit lands on `main`:
+   ```bash
+   git tag vX.Y.Z
+   git push origin vX.Y.Z
+   ```
+   Tag push triggers `.github/workflows/release.yml`, which **rebuilds `dist/` from source** and publishes the GitHub Release asset HACS may install.
+
+   **Important:** commit all source changes before tagging. If only `dist/` is updated locally, the release workflow will overwrite it with a build from the tagged source and users will get the wrong UI.
+
+## Version guidance
+
+- **Patch** (`0.3.0` → `0.3.1`): bug fixes, small UI tweaks
+- **Minor** (`0.3.0` → `0.4.0`): new behaviour or editor changes, backward compatible
+- **Major** (`1.0.0` → `2.0.0`): breaking config or behaviour changes
+
+## Do not skip
+
+- Pushing code without a new tag leaves HACS users on the old release
+- Bumping `package.json` alone is not enough — the **`vX.Y.Z` tag** must exist on GitHub
+- After release, remind the user: HACS → Update → redownload card → hard-refresh browser
+
+## Checklist (agent)
+
+- [ ] Version bumped in `package.json`, `src/constants.ts`, `CHANGELOG.md`
+- [ ] `npm run build` run; `dist/` updated
+- [ ] Commit includes source + dist changes
+- [ ] User told to create/push `vX.Y.Z` tag (or done if explicitly asked)

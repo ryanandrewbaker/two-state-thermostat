@@ -501,6 +501,63 @@ export function tempToAngle(temp: number, minTemp: number, maxTemp: number): num
   return ARC_START_ANGLE + clamped * ARC_SWEEP;
 }
 
+export function clampAngleToArc(angleDeg: number): number {
+  let angle = angleDeg;
+  while (angle < ARC_START_ANGLE) angle += 360;
+  while (angle > ARC_END_ANGLE) angle -= 360;
+
+  if (angle >= ARC_START_ANGLE && angle <= ARC_END_ANGLE) {
+    return angle;
+  }
+
+  const normalized = ((angleDeg % 360) + 360) % 360;
+  const startDist = Math.abs(normalized - ARC_START_ANGLE);
+  const endDist = Math.abs(normalized - (ARC_END_ANGLE - 360));
+  return startDist <= endDist ? ARC_START_ANGLE : ARC_END_ANGLE;
+}
+
+export function angleToTemp(
+  angleDeg: number,
+  minTemp: number,
+  maxTemp: number,
+): number {
+  const clampedAngle = clampAngleToArc(angleDeg);
+  const ratio = (clampedAngle - ARC_START_ANGLE) / ARC_SWEEP;
+  return minTemp + ratio * (maxTemp - minTemp);
+}
+
+export function targetFromAngle(
+  angleDeg: number,
+  which: "low" | "high",
+  climate: ClimateRange,
+  minimumSeparation: number,
+): TargetAdjustment | null {
+  if (climate.targetLow === null || climate.targetHigh === null) return null;
+
+  const rawTemp = angleToTemp(angleDeg, climate.minTemp, climate.maxTemp);
+  const stepped = roundToStep(rawTemp, climate.step);
+
+  if (which === "low") {
+    return clampTargetRange(
+      stepped,
+      climate.targetHigh,
+      climate.minTemp,
+      climate.maxTemp,
+      climate.step,
+      minimumSeparation,
+    );
+  }
+
+  return clampTargetRange(
+    climate.targetLow,
+    stepped,
+    climate.minTemp,
+    climate.maxTemp,
+    climate.step,
+    minimumSeparation,
+  );
+}
+
 export function getArcGeometry(climate: ClimateRange): ArcGeometry {
   return {
     currentAngle:

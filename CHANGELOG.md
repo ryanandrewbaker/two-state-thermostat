@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1] - 2026-07-27
+
+### Fixed
+
+- v0.3.0 release shipped the wrong bundle: the tag was pushed before draggable-dial source was committed, so the GitHub Release rebuild still contained +/- target controls. This release includes the correct source and bundle.
+
+### Changed
+
+- Draggable heat/cool arc knobs replace +/- setpoint buttons (as intended for 0.3.0)
+
 ## [0.3.0] - 2026-07-27
 
 ### Changed

@@ -14,7 +14,6 @@ import {
   DOCUMENTATION_URL,
 } from "./constants";
 import {
-  adjustTarget,
   buildCardViewState,
   getMinimumTargetSeparation,
   resolveCardConfig,
@@ -30,7 +29,12 @@ import {
   triggerBoost,
 } from "./services";
 import { cardStyles } from "./styles";
-import type { HomeAssistant, RawCardConfig, ResolvedCardConfig } from "./types";
+import type {
+  HomeAssistant,
+  RawCardConfig,
+  ResolvedCardConfig,
+  TargetAdjustment,
+} from "./types";
 
 @customElement(CARD_ELEMENT)
 export class TwoStageThermostatCard extends LitElement {
@@ -97,52 +101,12 @@ export class TwoStageThermostatCard extends LitElement {
         <div class="card">
           <div class="title">${view.title}</div>
 
-          <climate-dial .viewState=${view}></climate-dial>
-
-          <div class="target-controls">
-            <div class="target-group">
-              <button
-                type="button"
-                aria-label="Decrease heating target"
-                ?disabled=${disabled}
-                @click=${() => this._adjustTarget("low", -view.climate.step)}
-              >
-                −
-              </button>
-              <span class="target-label"
-                >${view.climate.targetLow?.toFixed(1) ?? "—"}</span
-              >
-              <button
-                type="button"
-                aria-label="Increase heating target"
-                ?disabled=${disabled}
-                @click=${() => this._adjustTarget("low", view.climate.step)}
-              >
-                +
-              </button>
-            </div>
-            <div class="target-group">
-              <button
-                type="button"
-                aria-label="Decrease cooling target"
-                ?disabled=${disabled}
-                @click=${() => this._adjustTarget("high", -view.climate.step)}
-              >
-                −
-              </button>
-              <span class="target-label"
-                >${view.climate.targetHigh?.toFixed(1) ?? "—"}</span
-              >
-              <button
-                type="button"
-                aria-label="Increase cooling target"
-                ?disabled=${disabled}
-                @click=${() => this._adjustTarget("high", view.climate.step)}
-              >
-                +
-              </button>
-            </div>
-          </div>
+          <climate-dial
+            .viewState=${view}
+            .disabled=${disabled}
+            .minimumTargetSeparation=${getMinimumTargetSeparation(resolved)}
+            @target-change=${this._handleTargetChange}
+          ></climate-dial>
 
           <div class="controls-row">
             <power-button
@@ -236,18 +200,11 @@ export class TwoStageThermostatCard extends LitElement {
     await this._withPending(() => setPower(this.hass!, resolved, !view.climate.isOn));
   }
 
-  private async _adjustTarget(which: "low" | "high", delta: number) {
-    if (!this.hass) return;
-    const resolved = this._resolvedConfig();
-    const view = buildCardViewState(this.hass, this._config);
-    const adjusted = adjustTarget(
-      view.climate,
-      which,
-      delta,
-      getMinimumTargetSeparation(resolved),
+  private async _handleTargetChange(event: CustomEvent<TargetAdjustment>) {
+    if (!this.hass || !event.detail) return;
+    await this._withPending(() =>
+      setTemperature(this.hass!, this._resolvedConfig(), event.detail),
     );
-    if (!adjusted) return;
-    await this._withPending(() => setTemperature(this.hass!, resolved, adjusted));
   }
 
   private async _handleBoost() {

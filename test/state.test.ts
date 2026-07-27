@@ -12,6 +12,7 @@ import {
   normalizeOperatingState,
   normalizeOperatingStateFromHvacAction,
   roundToStep,
+  targetFromAngle,
   validateConfig,
 } from "../src/state";
 import type { HassEntity, HomeAssistant, RawCardConfig } from "../src/types";
@@ -177,6 +178,23 @@ describe("arc geometry", () => {
     expect(geometry.highAngle).not.toBeNull();
     expect(geometry.currentAngle).not.toBeNull();
     expect(geometry.lowAngle!).toBeLessThan(geometry.highAngle!);
+  });
+
+  it("converts pointer angles back to clamped targets", () => {
+    const climate = {
+      current: 23,
+      targetLow: 22,
+      targetHigh: 27.5,
+      minTemp: 16,
+      maxTemp: 30,
+      step: 0.5,
+      hvacMode: "heat_cool",
+      isOn: true,
+    };
+
+    const adjusted = targetFromAngle(180, "low", climate, 1);
+    expect(adjusted?.targetLow).toBeGreaterThanOrEqual(climate.minTemp);
+    expect(adjusted!.targetHigh - adjusted!.targetLow).toBeGreaterThanOrEqual(1);
   });
 });
 

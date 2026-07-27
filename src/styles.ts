@@ -50,27 +50,6 @@ export const cardStyles = css`
     flex-wrap: wrap;
   }
 
-  .target-controls {
-    display: flex;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .target-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    justify-content: center;
-  }
-
-  .target-label {
-    font-size: 0.75rem;
-    color: var(--secondary-text-color);
-    min-width: 2.5rem;
-    text-align: center;
-  }
-
   .secondary-status {
     display: flex;
     flex-direction: column;
@@ -249,7 +228,17 @@ export const dialStyles = css`
   .knob {
     fill: var(--ha-card-background, var(--card-background-color, #1c1c1c));
     stroke-width: 3;
-    cursor: grab;
+    pointer-events: none;
+  }
+
+  .knob.dragging {
+    stroke-width: 4;
+  }
+
+  .knob-hit:disabled,
+  .knob-hit[aria-disabled="true"] {
+    cursor: not-allowed;
+    pointer-events: none;
   }
 
   .knob-heat {

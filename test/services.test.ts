@@ -9,10 +9,11 @@ import {
   buildSetTemperatureCall,
   callService,
 } from "../src/services";
-import type { HomeAssistant, TwoStageThermostatConfig } from "../src/types";
+import type { HomeAssistant, ResolvedCardConfig } from "../src/types";
 
-const config: TwoStageThermostatConfig = {
+const config: ResolvedCardConfig = {
   type: "custom:two-state-thermostat",
+  entity: "climate.family_room_auto_climate",
   climate_entity: "climate.family_room_auto_climate",
   operating_state_entity: "sensor.family_room_auto_operating_state",
   fan_auto_entity: "input_boolean.family_room_fan_automatic",
@@ -20,6 +21,12 @@ const config: TwoStageThermostatConfig = {
   boost_script_entity: "script.family_room_climate_boost",
   boost_cancel_script_entity: "script.family_room_climate_cancel_boost",
   power_on_mode: "heat_cool",
+  target_step: 0.5,
+  minimum_target_separation: 1,
+  show_countdown: true,
+  show_recommended_fan: true,
+  show_effective_targets: false,
+  usesHvacActionFallback: false,
 };
 
 describe("service payloads", () => {

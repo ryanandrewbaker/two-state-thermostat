@@ -1,10 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { validateConfig } from "../src/state";
-import type { TwoStageThermostatConfig } from "../src/types";
+import type { RawCardConfig } from "../src/types";
 
 describe("config validation", () => {
-  it("accepts minimal configuration", () => {
-    const config: TwoStageThermostatConfig = {
+  it("accepts minimal configuration with entity only", () => {
+    const config: RawCardConfig = {
+      type: "custom:two-state-thermostat",
+      entity: "climate.family_room_auto_climate",
+    };
+
+    expect(validateConfig(config)).toEqual([]);
+  });
+
+  it("accepts legacy climate_entity configuration", () => {
+    const config: RawCardConfig = {
       type: "custom:two-state-thermostat",
       climate_entity: "climate.family_room_auto_climate",
       operating_state_entity: "sensor.family_room_auto_operating_state",
@@ -14,10 +23,10 @@ describe("config validation", () => {
   });
 
   it("accepts full configuration", () => {
-    const config: TwoStageThermostatConfig = {
+    const config: RawCardConfig = {
       type: "custom:two-state-thermostat",
       name: "Family Room",
-      climate_entity: "climate.family_room_auto_climate",
+      entity: "climate.family_room_auto_climate",
       temperature_entity: "sensor.family_room_control_temperature",
       operating_state_entity: "sensor.family_room_auto_operating_state",
       fan_auto_entity: "input_boolean.family_room_fan_automatic",
@@ -47,8 +56,7 @@ describe("config validation", () => {
   it("rejects duplicate fan option values", () => {
     const errors = validateConfig({
       type: "custom:two-state-thermostat",
-      climate_entity: "climate.test",
-      operating_state_entity: "sensor.test",
+      entity: "climate.test",
       fan_options: [
         { value: "low", label: "Low" },
         { value: "low", label: "Low again" },
@@ -56,5 +64,13 @@ describe("config validation", () => {
     });
 
     expect(errors).toContain("fan_options contains duplicate values");
+  });
+
+  it("requires entity when validating non-empty config", () => {
+    expect(
+      validateConfig({
+        type: "custom:two-state-thermostat",
+      }),
+    ).toEqual(["Missing required configuration: entity"]);
   });
 });

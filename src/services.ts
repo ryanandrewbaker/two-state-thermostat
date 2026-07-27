@@ -1,10 +1,6 @@
 import { ALLOWED_SERVICE_DOMAINS, FORBIDDEN_SERVICES } from "./constants";
 import { getResolvedPowerOnMode } from "./state";
-import type {
-  HomeAssistant,
-  TargetAdjustment,
-  TwoStageThermostatConfig,
-} from "./types";
+import type { HomeAssistant, ResolvedCardConfig, TargetAdjustment } from "./types";
 
 export interface ServiceCall {
   domain: string;
@@ -22,7 +18,7 @@ export function assertAllowedService(domain: string, service: string): void {
   }
 }
 
-export function buildPowerOnCall(config: TwoStageThermostatConfig): ServiceCall {
+export function buildPowerOnCall(config: ResolvedCardConfig): ServiceCall {
   return {
     domain: "climate",
     service: "set_hvac_mode",
@@ -33,7 +29,7 @@ export function buildPowerOnCall(config: TwoStageThermostatConfig): ServiceCall 
   };
 }
 
-export function buildPowerOffCall(config: TwoStageThermostatConfig): ServiceCall {
+export function buildPowerOffCall(config: ResolvedCardConfig): ServiceCall {
   return {
     domain: "climate",
     service: "set_hvac_mode",
@@ -45,7 +41,7 @@ export function buildPowerOffCall(config: TwoStageThermostatConfig): ServiceCall
 }
 
 export function buildSetTemperatureCall(
-  config: TwoStageThermostatConfig,
+  config: ResolvedCardConfig,
   targets: TargetAdjustment,
 ): ServiceCall {
   return {
@@ -60,7 +56,7 @@ export function buildSetTemperatureCall(
   };
 }
 
-export function buildFanAutoOnCall(config: TwoStageThermostatConfig): ServiceCall {
+export function buildFanAutoOnCall(config: ResolvedCardConfig): ServiceCall {
   return {
     domain: "input_boolean",
     service: "turn_on",
@@ -70,7 +66,7 @@ export function buildFanAutoOnCall(config: TwoStageThermostatConfig): ServiceCal
   };
 }
 
-export function buildFanAutoOffCall(config: TwoStageThermostatConfig): ServiceCall {
+export function buildFanAutoOffCall(config: ResolvedCardConfig): ServiceCall {
   return {
     domain: "input_boolean",
     service: "turn_off",
@@ -81,7 +77,7 @@ export function buildFanAutoOffCall(config: TwoStageThermostatConfig): ServiceCa
 }
 
 export function buildFanOverrideCall(
-  config: TwoStageThermostatConfig,
+  config: ResolvedCardConfig,
   option: string,
 ): ServiceCall {
   return {
@@ -94,7 +90,7 @@ export function buildFanOverrideCall(
   };
 }
 
-export function buildBoostCall(config: TwoStageThermostatConfig): ServiceCall {
+export function buildBoostCall(config: ResolvedCardConfig): ServiceCall {
   return {
     domain: "script",
     service: "turn_on",
@@ -104,7 +100,7 @@ export function buildBoostCall(config: TwoStageThermostatConfig): ServiceCall {
   };
 }
 
-export function buildBoostCancelCall(config: TwoStageThermostatConfig): ServiceCall {
+export function buildBoostCancelCall(config: ResolvedCardConfig): ServiceCall {
   return {
     domain: "script",
     service: "turn_on",
@@ -124,7 +120,7 @@ export async function callService(
 
 export async function setPower(
   hass: HomeAssistant,
-  config: TwoStageThermostatConfig,
+  config: ResolvedCardConfig,
   on: boolean,
 ): Promise<void> {
   await callService(hass, on ? buildPowerOnCall(config) : buildPowerOffCall(config));
@@ -132,7 +128,7 @@ export async function setPower(
 
 export async function setTemperature(
   hass: HomeAssistant,
-  config: TwoStageThermostatConfig,
+  config: ResolvedCardConfig,
   targets: TargetAdjustment,
 ): Promise<void> {
   await callService(hass, buildSetTemperatureCall(config, targets));
@@ -140,7 +136,7 @@ export async function setTemperature(
 
 export async function setFanAuto(
   hass: HomeAssistant,
-  config: TwoStageThermostatConfig,
+  config: ResolvedCardConfig,
   enabled: boolean,
 ): Promise<void> {
   if (config.fan_auto_entity) {
@@ -158,7 +154,7 @@ export async function setFanAuto(
 
 export async function setFanOverride(
   hass: HomeAssistant,
-  config: TwoStageThermostatConfig,
+  config: ResolvedCardConfig,
   option: string,
 ): Promise<void> {
   await callService(hass, buildFanOverrideCall(config, option));
@@ -166,14 +162,14 @@ export async function setFanOverride(
 
 export async function triggerBoost(
   hass: HomeAssistant,
-  config: TwoStageThermostatConfig,
+  config: ResolvedCardConfig,
 ): Promise<void> {
   await callService(hass, buildBoostCall(config));
 }
 
 export async function cancelBoost(
   hass: HomeAssistant,
-  config: TwoStageThermostatConfig,
+  config: ResolvedCardConfig,
 ): Promise<void> {
   if (!config.boost_cancel_script_entity) return;
   await callService(hass, buildBoostCancelCall(config));

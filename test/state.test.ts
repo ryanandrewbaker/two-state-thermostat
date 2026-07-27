@@ -1,17 +1,20 @@
 import { describe, expect, it } from "vitest";
+import { resolveCardConfig } from "../src/config";
 import {
   adjustTarget,
   buildCardViewState,
   clampTargetRange,
   formatTimerRemaining,
   getArcGeometry,
+  getDegradedOperatingLabel,
   getFanState,
   getOperatingLabel,
   normalizeOperatingState,
+  normalizeOperatingStateFromHvacAction,
   roundToStep,
   validateConfig,
 } from "../src/state";
-import type { HassEntity, HomeAssistant, TwoStageThermostatConfig } from "../src/types";
+import type { HassEntity, HomeAssistant, RawCardConfig } from "../src/types";
 
 function makeClimate(overrides: Partial<HassEntity> = {}): HassEntity {
   return {
@@ -38,9 +41,9 @@ function makeHass(entities: Record<string, HassEntity>): HomeAssistant {
   };
 }
 
-const baseConfig: TwoStageThermostatConfig = {
+const baseConfig: RawCardConfig = {
   type: "custom:two-state-thermostat",
-  climate_entity: "climate.family_room",
+  entity: "climate.family_room",
   operating_state_entity: "sensor.family_room_operating_state",
 };
 
@@ -136,12 +139,15 @@ describe("fan state", () => {
       },
     });
 
-    const fan = getFanState(hass, {
-      ...baseConfig,
-      fan_auto_entity: "input_boolean.fan_auto",
-      fan_override_entity: "input_select.fan_override",
-      effective_fan_entity: "sensor.effective_fan",
-    });
+    const fan = getFanState(
+      hass,
+      resolveCardConfig(hass, {
+        ...baseConfig,
+        fan_auto_entity: "input_boolean.fan_auto",
+        fan_override_entity: "input_select.fan_override",
+        effective_fan_entity: "sensor.effective_fan",
+      }),
+    );
 
     expect(fan.isAuto).toBe(true);
     expect(fan.readOnly).toBe(true);
@@ -149,7 +155,7 @@ describe("fan state", () => {
   });
 
   it("omits fan controls when not configured", () => {
-    const fan = getFanState(makeHass({}), baseConfig);
+    const fan = getFanState(makeHass({}), resolveCardConfig(undefined, baseConfig));
     expect(fan.available).toBe(false);
   });
 });
@@ -201,18 +207,44 @@ describe("buildCardViewState", () => {
   });
 });
 
+describe("hvac_action fallback", () => {
+  it("maps hvac_action to degraded operating labels", () => {
+    expect(getDegradedOperatingLabel("heating")).toBe("Heating");
+    expect(getDegradedOperatingLabel("cooling")).toBe("Cooling");
+    expect(getDegradedOperatingLabel("idle")).toBe("Idle");
+    expect(normalizeOperatingStateFromHvacAction("heating")).toBe("maintain_heating");
+  });
+
+  it("builds view state without operating-state entity", () => {
+    const hass = makeHass({
+      "climate.family_room": makeClimate({
+        attributes: {
+          ...makeClimate().attributes,
+          hvac_action: "heating",
+        },
+      }),
+    });
+
+    const view = buildCardViewState(hass, {
+      type: "custom:two-state-thermostat",
+      entity: "climate.family_room",
+    });
+
+    expect(view.errors).toHaveLength(0);
+    expect(view.operatingLabel).toBe("Heating");
+    expect(view.warnings.some((warning) => warning.includes("operating-state"))).toBe(
+      true,
+    );
+  });
+});
+
 describe("validateConfig", () => {
-  it("requires climate and operating state entities", () => {
+  it("requires entity", () => {
     expect(
       validateConfig({
         type: "custom:two-state-thermostat",
-        climate_entity: "",
-        operating_state_entity: "",
       }),
-    ).toEqual([
-      "Missing required configuration: climate_entity",
-      "Missing required configuration: operating_state_entity",
-    ]);
+    ).toEqual(["Missing required configuration: entity"]);
   });
 
   it("requires paired fan entities", () => {

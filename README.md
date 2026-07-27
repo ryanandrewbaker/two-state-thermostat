@@ -58,6 +58,17 @@ type: module
 
 ### Minimal example
 
+Select a virtual climate controller entity. The card discovers companion entities from attributes on that entity (or from conservative naming conventions as a fallback):
+
+```yaml
+type: custom:two-state-thermostat
+entity: climate.family_room_auto_climate
+```
+
+### Legacy example
+
+The card continues to accept the previous explicit configuration format:
+
 ```yaml
 type: custom:two-state-thermostat
 climate_entity: climate.family_room_auto_climate
@@ -69,7 +80,7 @@ operating_state_entity: sensor.family_room_auto_operating_state
 ```yaml
 type: custom:two-state-thermostat
 name: Family Room
-climate_entity: climate.family_room_auto_climate
+entity: climate.family_room_auto_climate
 temperature_entity: sensor.family_room_control_temperature
 operating_state_entity: sensor.family_room_auto_operating_state
 fan_auto_entity: input_boolean.family_room_fan_automatic
@@ -86,6 +97,94 @@ show_countdown: true
 show_recommended_fan: true
 show_effective_targets: false
 ```
+
+## Package integration contract
+
+The card does **not** control a physical split system directly. It controls a **virtual climate entity** that your Home Assistant package or automation layer owns. That climate entity is the **anchor** for discovery.
+
+### Recommended configuration
+
+```yaml
+type: custom:two-state-thermostat
+entity: climate.family_room_auto_climate
+```
+
+When your package exposes the attributes below on the virtual climate entity, users only need to select the controller in the card editor. Explicit Lovelace YAML always overrides entity attributes.
+
+### Supported climate attributes
+
+| Attribute                    | Purpose                                                                                  |
+| ---------------------------- | ---------------------------------------------------------------------------------------- |
+| `two_state_thermostat: true` | Marks this climate entity as compatible with the card (also used for entity suggestions) |
+| `temperature_entity`         | External control temperature sensor                                                      |
+| `operating_state_entity`     | Operating-state sensor (Off, Idle, Boost/Maintain Heating/Cooling)                       |
+| `fan_auto_entity`            | Automatic fan control boolean                                                            |
+| `fan_override_entity`        | Manual fan override select                                                               |
+| `effective_fan_entity`       | Effective fan mode sensor                                                                |
+| `recommended_fan_entity`     | Automatic fan recommendation sensor                                                      |
+| `boost_script_entity`        | Boost script                                                                             |
+| `boost_cancel_script_entity` | Boost cancel script                                                                      |
+| `boost_active_entity`        | Boost active boolean                                                                     |
+| `boost_timer_entity`         | Boost countdown timer                                                                    |
+| `power_on_mode`              | HVAC mode used when powering on (default: `heat_cool`)                                   |
+| `fan_options`                | Fan speed options (list of strings or `{value, label}` objects)                          |
+| `target_step`                | Target temperature step (default: `0.5`)                                                 |
+| `minimum_target_separation`  | Minimum gap between heating and cooling targets (default: `1`)                           |
+
+### Example package attributes
+
+Conceptually, your virtual climate entity might expose:
+
+```yaml
+# On climate.family_room_auto_climate
+two_state_thermostat: true
+temperature_entity: sensor.family_room_control_temperature
+operating_state_entity: sensor.family_room_auto_operating_state
+fan_auto_entity: input_boolean.family_room_fan_automatic
+fan_override_entity: input_select.family_room_fan_override
+effective_fan_entity: sensor.family_room_effective_fan_mode
+recommended_fan_entity: sensor.family_room_automatic_fan_recommendation
+boost_script_entity: script.family_room_climate_boost
+boost_cancel_script_entity: script.family_room_climate_cancel_boost
+boost_active_entity: input_boolean.family_room_climate_boost
+boost_timer_entity: timer.family_room_climate_boost
+power_on_mode: heat_cool
+fan_options:
+  - quiet
+  - low
+  - medium
+  - high
+target_step: 0.5
+minimum_target_separation: 1
+```
+
+### Resolution order
+
+Each setting is resolved in this order:
+
+1. Explicit value in the Lovelace card config
+2. Attribute on the selected climate entity
+3. Safe default (where applicable)
+4. Omit optional feature
+
+Discovered values are **not** written back into stored dashboard YAML.
+
+### Naming convention fallback
+
+If attributes are absent, the card can derive companion entities from the controller entity id. For `climate.family_room_auto_climate`, the base `family_room` is used to look up exact entity ids such as `sensor.family_room_auto_operating_state`. Only entities that exist in Home Assistant are used—there is no fuzzy cross-room matching.
+
+### Required and optional entities
+
+**Required:**
+
+- Virtual climate controller (`entity`)
+- Operating-state sensor, **or** degraded fallback via `climate.hvac_action` (Off, Idle, Heating, Cooling only; Boost/Maintain arc feedback unavailable)
+
+**Optional:**
+
+- External temperature sensor, fan controls, Boost controls, timer, recommendation sensor
+
+Missing optional entities omit their UI sections gracefully.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full entity contract and development guidelines.
 

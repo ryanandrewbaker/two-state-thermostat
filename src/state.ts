@@ -1,9 +1,14 @@
 import {
+  formatCardTitle,
+  normalizeControllerEntity,
+  resolveCardConfig,
+  resolveFanOptionsFromConfig,
+} from "./config";
+import {
   ARC_END_ANGLE,
   ARC_START_ANGLE,
   ARC_SWEEP,
   AUTO_FAN_OPTION_VALUE,
-  DEFAULT_FAN_OPTIONS,
   DEFAULT_MAX_TEMP,
   DEFAULT_MIN_TEMP,
   DEFAULT_MINIMUM_TARGET_SEPARATION,
@@ -21,8 +26,9 @@ import type {
   HassEntity,
   HomeAssistant,
   OperatingStateKey,
+  RawCardConfig,
+  ResolvedCardConfig,
   TargetAdjustment,
-  TwoStageThermostatConfig,
 } from "./types";
 
 export function normalizeOperatingState(raw: string | undefined): OperatingStateKey {
@@ -86,8 +92,45 @@ export function roundToStep(value: number, step: number): number {
   return Number(rounded.toFixed(precision));
 }
 
-export function resolveFanOptions(config: TwoStageThermostatConfig): FanOption[] {
-  return config.fan_options?.length ? config.fan_options : DEFAULT_FAN_OPTIONS;
+export function normalizeOperatingStateFromHvacAction(
+  hvacAction: string | undefined,
+): OperatingStateKey {
+  if (!hvacAction || hvacAction === "unavailable" || hvacAction === "unknown") {
+    return "unknown";
+  }
+
+  const normalized = hvacAction.trim().toLowerCase();
+  const map: Record<string, OperatingStateKey> = {
+    off: "off",
+    idle: "idle",
+    heating: "maintain_heating",
+    cooling: "maintain_cooling",
+  };
+
+  return map[normalized] ?? "unknown";
+}
+
+export function getDegradedOperatingLabel(hvacAction: string | undefined): string {
+  if (!hvacAction) return "Unknown";
+  const normalized = hvacAction.trim().toLowerCase();
+  const labels: Record<string, string> = {
+    off: "Off",
+    idle: "Idle",
+    heating: "Heating",
+    cooling: "Cooling",
+  };
+  return labels[normalized] ?? "Unknown";
+}
+
+export function resolveFanOptions(
+  config: RawCardConfig | ResolvedCardConfig,
+): FanOption[] {
+  if ("usesHvacActionFallback" in config) {
+    return resolveFanOptionsFromConfig(config);
+  }
+  return config.fan_options?.length
+    ? config.fan_options
+    : resolveFanOptionsFromConfig(resolveCardConfig(undefined, config));
 }
 
 export function findFanOptionLabel(
@@ -124,14 +167,12 @@ export function formatTimerRemaining(
   return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
-export function validateConfig(config: TwoStageThermostatConfig): string[] {
+export function validateConfig(config: RawCardConfig | ResolvedCardConfig): string[] {
   const errors: string[] = [];
 
-  if (!config.climate_entity) {
-    errors.push("Missing required configuration: climate_entity");
-  }
-  if (!config.operating_state_entity) {
-    errors.push("Missing required configuration: operating_state_entity");
+  const entity = normalizeControllerEntity(config);
+  if (!entity) {
+    errors.push("Missing required configuration: entity");
   }
 
   const fanOptions = resolveFanOptions(config);
@@ -153,18 +194,18 @@ export function validateConfig(config: TwoStageThermostatConfig): string[] {
 
 export function validateRuntime(
   hass: HomeAssistant | undefined,
-  config: TwoStageThermostatConfig,
+  config: ResolvedCardConfig,
 ): { errors: string[]; warnings: string[] } {
   const errors: string[] = [];
   const warnings: string[] = [];
 
   if (!hass) return { errors, warnings };
 
-  const climate = getEntity(hass, config.climate_entity);
+  const climate = getEntity(hass, config.entity);
   if (!climate) {
-    errors.push(`Climate entity not found: ${config.climate_entity}`);
+    errors.push(`Climate entity not found: ${config.entity}`);
   } else if (!isEntityAvailable(climate)) {
-    errors.push(`Climate entity unavailable: ${config.climate_entity}`);
+    errors.push(`Climate entity unavailable: ${config.entity}`);
   } else {
     const low = parseNumber(climate.attributes.target_temp_low);
     const high = parseNumber(climate.attributes.target_temp_high);
@@ -173,11 +214,34 @@ export function validateRuntime(
     }
   }
 
-  const operating = getEntity(hass, config.operating_state_entity);
-  if (!operating) {
-    errors.push(`Operating state entity not found: ${config.operating_state_entity}`);
-  } else if (!isEntityAvailable(operating)) {
-    errors.push(`Operating state entity unavailable: ${config.operating_state_entity}`);
+  if (config.usesHvacActionFallback) {
+    warnings.push(
+      "Boost/Maintain feedback requires an operating-state sensor; using climate hvac_action instead",
+    );
+  } else {
+    const operating = getEntity(hass, config.operating_state_entity);
+    if (!operating) {
+      errors.push(`Operating state entity not found: ${config.operating_state_entity}`);
+    } else if (!isEntityAvailable(operating)) {
+      errors.push(
+        `Operating state entity unavailable: ${config.operating_state_entity}`,
+      );
+    }
+  }
+
+  const optionalEntities: Array<{ id: string | undefined; label: string }> = [
+    { id: config.temperature_entity, label: "Temperature sensor" },
+    { id: config.boost_timer_entity, label: "Boost timer" },
+    { id: config.boost_script_entity, label: "Boost script" },
+    { id: config.boost_active_entity, label: "Boost active" },
+  ];
+
+  for (const { id, label } of optionalEntities) {
+    if (!id) continue;
+    const entityState = getEntity(hass, id);
+    if (entityState && !isEntityAvailable(entityState)) {
+      warnings.push(`${label} references an unavailable entity: ${id}`);
+    }
   }
 
   const fanOptions = resolveFanOptions(config);
@@ -204,9 +268,9 @@ export function validateRuntime(
 
 export function getClimateRange(
   hass: HomeAssistant | undefined,
-  config: TwoStageThermostatConfig,
+  config: ResolvedCardConfig,
 ): ClimateRange {
-  const climate = getEntity(hass, config.climate_entity);
+  const climate = getEntity(hass, config.entity);
   const temperature = getEntity(hass, config.temperature_entity);
 
   const currentFromSensor = parseNumber(temperature?.state);
@@ -288,7 +352,7 @@ export function adjustTarget(
 
 export function getFanState(
   hass: HomeAssistant | undefined,
-  config: TwoStageThermostatConfig,
+  config: ResolvedCardConfig,
 ): FanState {
   const options = resolveFanOptions(config);
   const fanAuto = getEntity(hass, config.fan_auto_entity);
@@ -378,7 +442,7 @@ export function getFanState(
 
 export function getBoostState(
   hass: HomeAssistant | undefined,
-  config: TwoStageThermostatConfig,
+  config: ResolvedCardConfig,
 ): BoostState {
   const available = Boolean(config.boost_script_entity);
   const activeEntity = getEntity(hass, config.boost_active_entity);
@@ -396,17 +460,33 @@ export function getBoostState(
 
 export function buildCardViewState(
   hass: HomeAssistant | undefined,
-  config: TwoStageThermostatConfig,
+  rawConfig: RawCardConfig,
 ): CardViewState {
+  const config = resolveCardConfig(hass, rawConfig);
   const configErrors = validateConfig(config);
   const runtime = validateRuntime(hass, config);
-  const operatingEntity = getEntity(hass, config.operating_state_entity);
-  const operatingState = normalizeOperatingState(operatingEntity?.state);
+
+  let operatingState: OperatingStateKey;
+  let operatingLabel: string;
+
+  if (config.usesHvacActionFallback) {
+    const climate = getEntity(hass, config.entity);
+    const hvacAction =
+      typeof climate?.attributes.hvac_action === "string"
+        ? climate.attributes.hvac_action
+        : undefined;
+    operatingState = normalizeOperatingStateFromHvacAction(hvacAction);
+    operatingLabel = getDegradedOperatingLabel(hvacAction);
+  } else {
+    const operatingEntity = getEntity(hass, config.operating_state_entity);
+    operatingState = normalizeOperatingState(operatingEntity?.state);
+    operatingLabel = getOperatingLabel(operatingState, config.state_map);
+  }
 
   return {
-    title: config.name ?? config.climate_entity,
+    title: formatCardTitle(hass, rawConfig, config.entity),
     operatingState,
-    operatingLabel: getOperatingLabel(operatingState, config.state_map),
+    operatingLabel,
     climate: getClimateRange(hass, config),
     fan: getFanState(hass, config),
     boost: getBoostState(hass, config),
@@ -440,13 +520,15 @@ export function getArcGeometry(climate: ClimateRange): ArcGeometry {
   };
 }
 
-export function getResolvedPowerOnMode(config: TwoStageThermostatConfig): string {
+export function getResolvedPowerOnMode(config: ResolvedCardConfig): string {
   return config.power_on_mode ?? DEFAULT_POWER_ON_MODE;
 }
 
-export function getMinimumTargetSeparation(config: TwoStageThermostatConfig): number {
+export function getMinimumTargetSeparation(config: ResolvedCardConfig): number {
   return config.minimum_target_separation ?? DEFAULT_MINIMUM_TARGET_SEPARATION;
 }
+
+export { resolveCardConfig };
 
 export function describeArcState(state: OperatingStateKey): {
   warmActive: boolean;

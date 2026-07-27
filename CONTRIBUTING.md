@@ -1,6 +1,6 @@
 # Contributing
 
-Thank you for contributing to Two Stage Thermostat.
+Thank you for contributing to Two State Thermostat.
 
 ## Design rules
 

@@ -534,7 +534,7 @@ function g(e) {
 function gt(e) {
   return g({ ...e, state: !0, attribute: !1 });
 }
-const Dt = "two-state-thermostat", mt = "two-state-thermostat", zt = "Two Stage Thermostat", we = "0.1.0", Ae = "https://github.com/ryanandrewbaker/two-state-thermostat", It = "heat_cool", Vt = 0.5, Wt = 1, xe = 5, Se = 35, qt = [
+const Dt = "two-state-thermostat", mt = "two-state-thermostat", zt = "Two State Thermostat", we = "0.1.0", Ae = "https://github.com/ryanandrewbaker/two-state-thermostat", It = "heat_cool", Vt = 0.5, Wt = 1, xe = 5, Se = 35, qt = [
   { value: "quiet", label: "Quiet" },
   { value: "low", label: "Low" },
   { value: "medium", label: "Medium" },

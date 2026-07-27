@@ -1,5 +1,5 @@
 {
-  "name": "Two Stage Thermostat",
+  "name": "Two State Thermostat",
   "render_readme": true,
   "filename": "two-state-thermostat.js"
 }

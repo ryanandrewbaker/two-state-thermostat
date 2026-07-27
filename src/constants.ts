@@ -2,7 +2,7 @@ import type { FanOption, OperatingStateKey } from "./types";
 
 export const CARD_TYPE = "two-state-thermostat";
 export const CARD_ELEMENT = "two-state-thermostat";
-export const CARD_NAME = "Two Stage Thermostat";
+export const CARD_NAME = "Two State Thermostat";
 export const CARD_VERSION = "0.1.0";
 export const DOCUMENTATION_URL =
   "https://github.com/ryanandrewbaker/two-state-thermostat";

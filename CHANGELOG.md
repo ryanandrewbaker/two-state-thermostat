@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-07-27
+
+### Changed
+
+- Replace heating/cooling +/- buttons with draggable arc knobs for direct setpoint adjustment
+- Live preview of target range while dragging; changes commit on release
+
 ## [0.2.0] - 2026-07-27
 
 ### Added

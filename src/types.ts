@@ -88,6 +88,16 @@ export interface HomeAssistant {
 export interface LovelaceCard {
   setConfig(config: RawCardConfig): void;
   hass?: HomeAssistant;
+  getCardSize?(): number;
+  getGridOptions?(): CardGridOptions;
+}
+
+/** Default grid sizing returned by getGridOptions(). */
+export interface CardGridOptions {
+  columns: number;
+  min_columns: number;
+  rows: number | "auto";
+  min_rows?: number;
 }
 
 export interface LovelaceCardEditor extends HTMLElement {

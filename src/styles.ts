@@ -6,7 +6,6 @@ export const cardStyles = css`
   }
 
   ha-card {
-    overflow: hidden;
     border-radius: var(--ha-card-border-radius, 12px);
     background: var(--ha-card-background, var(--card-background-color, #1c1c1c));
     color: var(--primary-text-color, #fff);

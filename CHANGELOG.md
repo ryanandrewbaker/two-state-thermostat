@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.5] - 2026-07-28
+
+### Fixed
+
+- Fixed card overlap in Home Assistant Sections dashboards by declaring automatic grid row height instead of a fixed row count.
+
 ## [0.3.4] - 2026-07-28
 
 ### Fixed

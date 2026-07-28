@@ -186,6 +186,21 @@ If attributes are absent, the card can derive companion entities from the contro
 
 Missing optional entities omit their UI sections gracefully.
 
+### Sections dashboard layout
+
+New cards default to automatic grid row height (`rows: auto`) so the card reserves enough vertical space for fan controls, Boost, and responsive text wrapping.
+
+For cards that were already saved with a numeric `grid_options.rows` value, Home Assistant keeps that per-card sizing. Edit the card once and set:
+
+```yaml
+type: custom:two-state-thermostat
+entity: climate.family_room_auto_climate
+grid_options:
+  rows: auto
+```
+
+`getCardSize()` remains for legacy Masonry layouts; Sections dashboards use `getGridOptions().rows` instead.
+
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full entity contract and development guidelines.
 
 ## Development

@@ -30,6 +30,7 @@ import {
 } from "./services";
 import { cardStyles } from "./styles";
 import type {
+  CardGridOptions,
   HomeAssistant,
   RawCardConfig,
   ResolvedCardConfig,
@@ -61,16 +62,19 @@ export class TwoStageThermostatCard extends LitElement {
     return {};
   }
 
+  /**
+   * Approximate row count for legacy Masonry layouts.
+   * Sections dashboards use {@link getGridOptions} `rows: "auto"` instead.
+   */
   public getCardSize(): number {
     return 8;
   }
 
-  public getGridOptions() {
+  public getGridOptions(): CardGridOptions {
     return {
       columns: 6,
       min_columns: 4,
-      rows: 8,
-      min_rows: 7,
+      rows: "auto",
     };
   }
 

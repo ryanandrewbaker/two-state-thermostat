@@ -534,7 +534,7 @@ function f(e) {
 function F(e) {
   return f({ ...e, state: !0, attribute: !1 });
 }
-const $t = "two-state-thermostat", Tt = "two-state-thermostat", se = "Two State Thermostat", He = "0.3.4", Fe = "https://github.com/ryanandrewbaker/two-state-thermostat", Pt = "heat_cool", kt = 0.5, Ot = 1, Ie = 5, ze = 35, ae = [
+const $t = "two-state-thermostat", Tt = "two-state-thermostat", se = "Two State Thermostat", He = "0.3.5", Fe = "https://github.com/ryanandrewbaker/two-state-thermostat", Pt = "heat_cool", kt = 0.5, Ot = 1, Ie = 5, ze = 35, ae = [
   { value: "quiet", label: "Quiet" },
   { value: "low", label: "Low" },
   { value: "medium", label: "Medium" },
@@ -1230,7 +1230,6 @@ const Mt = Q`
   }
 
   ha-card {
-    overflow: hidden;
     border-radius: var(--ha-card-border-radius, 12px);
     background: var(--ha-card-background, var(--card-background-color, #1c1c1c));
     color: var(--primary-text-color, #fff);
@@ -2584,6 +2583,10 @@ let R = class extends b {
   static getStubConfig() {
     return {};
   }
+  /**
+   * Approximate row count for legacy Masonry layouts.
+   * Sections dashboards use {@link getGridOptions} `rows: "auto"` instead.
+   */
   getCardSize() {
     return 8;
   }
@@ -2591,8 +2594,7 @@ let R = class extends b {
     return {
       columns: 6,
       min_columns: 4,
-      rows: 8,
-      min_rows: 7
+      rows: "auto"
     };
   }
   _resolvedConfig() {

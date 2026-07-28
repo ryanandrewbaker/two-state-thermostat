@@ -62,15 +62,15 @@ export class TwoStageThermostatCard extends LitElement {
   }
 
   public getCardSize(): number {
-    return 5;
+    return 8;
   }
 
   public getGridOptions() {
     return {
       columns: 6,
       min_columns: 4,
-      rows: 5,
-      min_rows: 4,
+      rows: 8,
+      min_rows: 7,
     };
   }
 

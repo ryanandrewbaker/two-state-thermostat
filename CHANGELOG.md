@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.4] - 2026-07-28
+
+### Fixed
+
+- Fixed card overlap in Home Assistant Sections dashboards by increasing the declared grid height for cards with fan and Boost controls.
+
 ## [0.3.3] - 2026-07-28
 
 ### Changed

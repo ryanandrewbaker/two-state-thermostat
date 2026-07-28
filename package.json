@@ -1,6 +1,6 @@
 {
   "name": "two-state-thermostat",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "A dual-range Home Assistant Lovelace climate card with staged Boost and Maintain feedback",
   "type": "module",
   "keywords": [

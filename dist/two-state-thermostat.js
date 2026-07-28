@@ -280,7 +280,7 @@ class Z {
       if (o.nodeType === 1) {
         if (o.hasAttributes()) for (const u of o.getAttributeNames()) if (u.endsWith(ee)) {
           const _ = d[s++], m = o.getAttribute(u).split(w), v = /([.?@])?(.*)/.exec(_);
-          l.push({ type: 1, index: r, name: v[2], strings: m, ctor: v[1] === "." ? Oe : v[1] === "?" ? ke : v[1] === "@" ? Me : dt }), o.removeAttribute(u);
+          l.push({ type: 1, index: r, name: v[2], strings: m, ctor: v[1] === "." ? ke : v[1] === "?" ? Oe : v[1] === "@" ? Me : dt }), o.removeAttribute(u);
         } else u.startsWith(w) && (l.push({ type: 6, index: r }), o.removeAttribute(u));
         if (ie.test(o.tagName)) {
           const u = o.textContent.split(w), _ = u.length - 1;
@@ -421,7 +421,7 @@ class dt {
     t === p ? this.element.removeAttribute(this.name) : this.element.setAttribute(this.name, t ?? "");
   }
 }
-class Oe extends dt {
+class ke extends dt {
   constructor() {
     super(...arguments), this.type = 3;
   }
@@ -429,7 +429,7 @@ class Oe extends dt {
     this.element[this.name] = t === p ? void 0 : t;
   }
 }
-class ke extends dt {
+class Oe extends dt {
   constructor() {
     super(...arguments), this.type = 4;
   }
@@ -534,7 +534,7 @@ function f(e) {
 function F(e) {
   return f({ ...e, state: !0, attribute: !1 });
 }
-const $t = "two-state-thermostat", Tt = "two-state-thermostat", se = "Two State Thermostat", He = "0.3.1", Fe = "https://github.com/ryanandrewbaker/two-state-thermostat", Pt = "heat_cool", Ot = 0.5, kt = 1, Ie = 5, ze = 35, ae = [
+const $t = "two-state-thermostat", Tt = "two-state-thermostat", se = "Two State Thermostat", He = "0.3.3", Fe = "https://github.com/ryanandrewbaker/two-state-thermostat", Pt = "heat_cool", kt = 0.5, Ot = 1, Ie = 5, ze = 35, ae = [
   { value: "quiet", label: "Quiet" },
   { value: "low", label: "Low" },
   { value: "medium", label: "Medium" },
@@ -749,12 +749,12 @@ function pt(e, t) {
     target_step: yt(
       t.target_step,
       i.target_step,
-      Ot
+      kt
     ),
     minimum_target_separation: yt(
       t.minimum_target_separation,
       i.minimum_target_separation,
-      kt
+      Ot
     ),
     show_countdown: t.show_countdown ?? !0,
     show_recommended_fan: t.show_recommended_fan ?? !0,
@@ -945,7 +945,7 @@ let U = class extends b {
                 id="target_step"
                 type="number"
                 step="0.1"
-                .value=${String(this._config.target_step ?? Ot)}
+                .value=${String(this._config.target_step ?? kt)}
                 @change=${(n) => this._update({
       target_step: Number(n.target.value)
     })}
@@ -959,7 +959,7 @@ let U = class extends b {
                 type="number"
                 step="0.1"
                 .value=${String(
-      this._config.minimum_target_separation ?? kt
+      this._config.minimum_target_separation ?? Ot
     )}
                 @change=${(n) => this._update({
       minimum_target_separation: Number(
@@ -1281,12 +1281,16 @@ const Mt = Q`
     margin: 0 auto;
   }
 
-  .dial-section power-button {
+  .dial-controls {
     position: absolute;
     left: 50%;
     bottom: 11%;
     transform: translateX(-50%);
     z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
   }
 
   .secondary-status {
@@ -1331,11 +1335,14 @@ const Mt = Q`
   }
 
   .power-button {
-    border-color: color-mix(in srgb, var(--heat-color, #c86b3a) 60%, transparent);
+    border-color: color-mix(in srgb, var(--secondary-text-color, #888) 55%, transparent);
+    color: var(--secondary-text-color);
   }
 
   .power-button.on {
-    background: color-mix(in srgb, var(--heat-color, #c86b3a) 20%, transparent);
+    border-color: color-mix(in srgb, var(--heat-color, #f0884a) 65%, transparent);
+    background: color-mix(in srgb, var(--heat-color, #f0884a) 22%, transparent);
+    color: var(--primary-text-color);
   }
 
   .boost-button {
@@ -1389,18 +1396,23 @@ const Mt = Q`
   }
 `, dn = Q`
   :host {
-    --heat-color: #c86b3a;
-    --cool-color: #4a78b8;
     --dial-track: var(--divider-color, rgba(255, 255, 255, 0.12));
     display: block;
     width: 100%;
   }
 
   .dial-wrap {
+    --heat-color: #f0884a;
+    --cool-color: #5a9ae8;
     width: 100%;
     margin: 0 auto;
     aspect-ratio: 1;
     position: relative;
+  }
+
+  .dial-wrap.subdued {
+    --heat-color: color-mix(in srgb, var(--secondary-text-color, #888) 82%, #c86b3a 18%);
+    --cool-color: color-mix(in srgb, var(--secondary-text-color, #888) 82%, #4a78b8 18%);
   }
 
   svg {
@@ -1420,9 +1432,10 @@ const Mt = Q`
     fill: none;
     stroke: var(--heat-color);
     stroke-linecap: round;
-    opacity: 0.3;
+    opacity: 0.48;
     transition:
       opacity 0.2s ease,
+      stroke 0.2s ease,
       stroke-width 0.2s ease;
   }
 
@@ -1431,12 +1444,12 @@ const Mt = Q`
   }
 
   .arc-heat.base.active {
-    opacity: 0.55;
+    opacity: 0.72;
   }
 
   .arc-heat.remaining {
     stroke-width: 14;
-    opacity: 0.95;
+    opacity: 1;
   }
 
   .arc-heat.remaining.strong {
@@ -1448,9 +1461,10 @@ const Mt = Q`
     fill: none;
     stroke: var(--cool-color);
     stroke-linecap: round;
-    opacity: 0.3;
+    opacity: 0.48;
     transition:
       opacity 0.2s ease,
+      stroke 0.2s ease,
       stroke-width 0.2s ease;
   }
 
@@ -1459,12 +1473,12 @@ const Mt = Q`
   }
 
   .arc-cool.base.active {
-    opacity: 0.55;
+    opacity: 0.72;
   }
 
   .arc-cool.remaining {
     stroke-width: 14;
-    opacity: 0.95;
+    opacity: 1;
   }
 
   .arc-cool.remaining.strong {
@@ -1474,7 +1488,12 @@ const Mt = Q`
 
   .subdued .arc-heat,
   .subdued .arc-cool {
-    opacity: 0.2;
+    opacity: 0.16;
+  }
+
+  .subdued .knob-heat,
+  .subdued .knob-cool {
+    opacity: 0.45;
   }
 
   .knob {
@@ -1495,10 +1514,18 @@ const Mt = Q`
 
   .knob-heat {
     stroke: var(--heat-color);
+    transition:
+      stroke 0.2s ease,
+      opacity 0.2s ease,
+      stroke-width 0.2s ease;
   }
 
   .knob-cool {
     stroke: var(--cool-color);
+    transition:
+      stroke 0.2s ease,
+      opacity 0.2s ease,
+      stroke-width 0.2s ease;
   }
 
   .current-dot {
@@ -1827,7 +1854,7 @@ function yn(e, t) {
   return { errors: n, warnings: i };
 }
 function bn(e, t) {
-  const n = g(e, t.entity), i = g(e, t.temperature_entity), o = $(i?.state), r = $(n?.attributes.current_temperature), s = o ?? r, a = $(n?.attributes.target_temp_low), l = $(n?.attributes.target_temp_high), c = $(n?.attributes.min_temp) ?? Ie, d = $(n?.attributes.max_temp) ?? ze, u = t.target_step ?? $(n?.attributes.target_temp_step) ?? Ot, _ = typeof n?.attributes.hvac_mode == "string" ? n.attributes.hvac_mode : n?.state ?? null;
+  const n = g(e, t.entity), i = g(e, t.temperature_entity), o = $(i?.state), r = $(n?.attributes.current_temperature), s = o ?? r, a = $(n?.attributes.target_temp_low), l = $(n?.attributes.target_temp_high), c = $(n?.attributes.min_temp) ?? Ie, d = $(n?.attributes.max_temp) ?? ze, u = t.target_step ?? $(n?.attributes.target_temp_step) ?? kt, _ = typeof n?.attributes.hvac_mode == "string" ? n.attributes.hvac_mode : n?.state ?? null;
   return {
     current: s,
     targetLow: a,
@@ -1999,10 +2026,10 @@ function Tn(e, t) {
 function Pn(e) {
   return e.power_on_mode ?? Pt;
 }
-function On(e) {
-  return e.minimum_target_separation ?? kt;
-}
 function kn(e) {
+  return e.minimum_target_separation ?? Ot;
+}
+function On(e) {
   switch (e) {
     case "off":
       return {
@@ -2095,7 +2122,7 @@ let x = class extends b {
     super.disconnectedCallback(), this._endDrag(!1);
   }
   get arcState() {
-    return kn(this.viewState.operatingState);
+    return On(this.viewState.operatingState);
   }
   get displayClimate() {
     return this._preview ? {
@@ -2302,7 +2329,7 @@ var Nn = Object.defineProperty, Bn = Object.getOwnPropertyDescriptor, it = (e, t
     (s = e[r]) && (o = (i ? s(t, n, o) : s(o)) || o);
   return i && o && Nn(t, n, o), o;
 };
-let O = class extends b {
+let k = class extends b {
   constructor() {
     super(...arguments), this.options = [], this.index = 0, this.readOnly = !1, this.isAuto = !1;
   }
@@ -2356,22 +2383,22 @@ let O = class extends b {
     e.key === "ArrowRight" || e.key === "ArrowUp" ? t = Math.min(this.options.length - 1, this.index + 1) : e.key === "ArrowLeft" || e.key === "ArrowDown" ? t = Math.max(0, this.index - 1) : e.key === "Home" ? t = 0 : e.key === "End" && (t = this.options.length - 1), t !== null && (e.preventDefault(), this._select(t));
   }
 };
-O.styles = [un];
+k.styles = [un];
 it([
   f({ attribute: !1 })
-], O.prototype, "options", 2);
+], k.prototype, "options", 2);
 it([
   f({ type: Number })
-], O.prototype, "index", 2);
+], k.prototype, "index", 2);
 it([
   f({ type: Boolean })
-], O.prototype, "readOnly", 2);
+], k.prototype, "readOnly", 2);
 it([
   f({ type: Boolean })
-], O.prototype, "isAuto", 2);
-O = it([
+], k.prototype, "isAuto", 2);
+k = it([
   H("fan-slider")
-], O);
+], k);
 var Un = Object.defineProperty, Rn = Object.getOwnPropertyDescriptor, Lt = (e, t, n, i) => {
   for (var o = i > 1 ? void 0 : i ? Rn(t, n) : t, r = e.length - 1, s; r >= 0; r--)
     (s = e[r]) && (o = (i ? s(t, n, o) : s(o)) || o);
@@ -2496,33 +2523,33 @@ function Wn(e) {
     }
   };
 }
-async function k(e, t) {
+async function O(e, t) {
   Hn(t.domain, t.service), await e.callService(t.domain, t.service, t.data);
 }
 async function qn(e, t, n) {
-  await k(e, n ? Fn(t) : In(t));
+  await O(e, n ? Fn(t) : In(t));
 }
 async function Gn(e, t, n) {
-  await k(e, zn(t, n));
+  await O(e, zn(t, n));
 }
 async function Xn(e, t, n) {
   if (t.fan_auto_entity) {
-    await k(
+    await O(
       e,
       n ? jn(t) : Vn(t)
     );
     return;
   }
-  t.fan_override_entity && await k(e, he(t, n ? "auto" : "low"));
+  t.fan_override_entity && await O(e, he(t, n ? "auto" : "low"));
 }
 async function Yn(e, t, n) {
-  await k(e, he(t, n));
+  await O(e, he(t, n));
 }
 async function Zn(e, t) {
-  await k(e, Kn(t));
+  await O(e, Kn(t));
 }
 async function Jn(e, t) {
-  t.boost_cancel_script_entity && await k(e, Wn(t));
+  t.boost_cancel_script_entity && await O(e, Wn(t));
 }
 var Qn = Object.defineProperty, ti = Object.getOwnPropertyDescriptor, ft = (e, t, n, i) => {
   for (var o = i > 1 ? void 0 : i ? ti(t, n) : t, r = e.length - 1, s; r >= 0; r--)
@@ -2577,28 +2604,28 @@ let R = class extends b {
             <climate-dial
               .viewState=${e}
               .disabled=${i}
-              .minimumTargetSeparation=${On(t)}
+              .minimumTargetSeparation=${kn(t)}
               @target-change=${this._handleTargetChange}
             ></climate-dial>
-            <power-button
-              .on=${e.climate.isOn}
-              .disabled=${i}
-              @power-toggle=${this._togglePower}
-            ></power-button>
+            <div class="dial-controls">
+              <power-button
+                .on=${e.climate.isOn}
+                .disabled=${i}
+                @power-toggle=${this._togglePower}
+              ></power-button>
+              ${e.boost.available ? h`
+                      <boost-button
+                        .active=${e.boost.active}
+                        .disabled=${i}
+                        .remaining=${e.boost.remaining}
+                        .hasCancel=${e.boost.hasCancel}
+                        @boost-press=${this._handleBoost}
+                        @boost-cancel=${this._handleBoostCancel}
+                      ></boost-button>
+                    ` : p}
+            </div>
           </div>
 
-          ${e.boost.available ? h`
-                  <div class="controls-row">
-                    <boost-button
-                      .active=${e.boost.active}
-                      .disabled=${i}
-                      .remaining=${e.boost.remaining}
-                      .hasCancel=${e.boost.hasCancel}
-                      @boost-press=${this._handleBoost}
-                      @boost-cancel=${this._handleBoostCancel}
-                    ></boost-button>
-                  </div>
-                ` : p}
           ${e.fan.available ? h`
                   <div class="fan-section">
                     <div class="fan-header">

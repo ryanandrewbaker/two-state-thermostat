@@ -57,12 +57,16 @@ export const cardStyles = css`
     margin: 0 auto;
   }
 
-  .dial-section power-button {
+  .dial-controls {
     position: absolute;
     left: 50%;
     bottom: 11%;
     transform: translateX(-50%);
     z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
   }
 
   .secondary-status {
@@ -107,11 +111,14 @@ export const cardStyles = css`
   }
 
   .power-button {
-    border-color: color-mix(in srgb, var(--heat-color, #c86b3a) 60%, transparent);
+    border-color: color-mix(in srgb, var(--secondary-text-color, #888) 55%, transparent);
+    color: var(--secondary-text-color);
   }
 
   .power-button.on {
-    background: color-mix(in srgb, var(--heat-color, #c86b3a) 20%, transparent);
+    border-color: color-mix(in srgb, var(--heat-color, #f0884a) 65%, transparent);
+    background: color-mix(in srgb, var(--heat-color, #f0884a) 22%, transparent);
+    color: var(--primary-text-color);
   }
 
   .boost-button {
@@ -167,18 +174,23 @@ export const cardStyles = css`
 
 export const dialStyles = css`
   :host {
-    --heat-color: #c86b3a;
-    --cool-color: #4a78b8;
     --dial-track: var(--divider-color, rgba(255, 255, 255, 0.12));
     display: block;
     width: 100%;
   }
 
   .dial-wrap {
+    --heat-color: #f0884a;
+    --cool-color: #5a9ae8;
     width: 100%;
     margin: 0 auto;
     aspect-ratio: 1;
     position: relative;
+  }
+
+  .dial-wrap.subdued {
+    --heat-color: color-mix(in srgb, var(--secondary-text-color, #888) 82%, #c86b3a 18%);
+    --cool-color: color-mix(in srgb, var(--secondary-text-color, #888) 82%, #4a78b8 18%);
   }
 
   svg {
@@ -198,9 +210,10 @@ export const dialStyles = css`
     fill: none;
     stroke: var(--heat-color);
     stroke-linecap: round;
-    opacity: 0.3;
+    opacity: 0.48;
     transition:
       opacity 0.2s ease,
+      stroke 0.2s ease,
       stroke-width 0.2s ease;
   }
 
@@ -209,12 +222,12 @@ export const dialStyles = css`
   }
 
   .arc-heat.base.active {
-    opacity: 0.55;
+    opacity: 0.72;
   }
 
   .arc-heat.remaining {
     stroke-width: 14;
-    opacity: 0.95;
+    opacity: 1;
   }
 
   .arc-heat.remaining.strong {
@@ -226,9 +239,10 @@ export const dialStyles = css`
     fill: none;
     stroke: var(--cool-color);
     stroke-linecap: round;
-    opacity: 0.3;
+    opacity: 0.48;
     transition:
       opacity 0.2s ease,
+      stroke 0.2s ease,
       stroke-width 0.2s ease;
   }
 
@@ -237,12 +251,12 @@ export const dialStyles = css`
   }
 
   .arc-cool.base.active {
-    opacity: 0.55;
+    opacity: 0.72;
   }
 
   .arc-cool.remaining {
     stroke-width: 14;
-    opacity: 0.95;
+    opacity: 1;
   }
 
   .arc-cool.remaining.strong {
@@ -252,7 +266,12 @@ export const dialStyles = css`
 
   .subdued .arc-heat,
   .subdued .arc-cool {
-    opacity: 0.2;
+    opacity: 0.16;
+  }
+
+  .subdued .knob-heat,
+  .subdued .knob-cool {
+    opacity: 0.45;
   }
 
   .knob {
@@ -273,10 +292,18 @@ export const dialStyles = css`
 
   .knob-heat {
     stroke: var(--heat-color);
+    transition:
+      stroke 0.2s ease,
+      opacity 0.2s ease,
+      stroke-width 0.2s ease;
   }
 
   .knob-cool {
     stroke: var(--cool-color);
+    transition:
+      stroke 0.2s ease,
+      opacity 0.2s ease,
+      stroke-width 0.2s ease;
   }
 
   .current-dot {

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.3] - 2026-07-28
+
+### Changed
+
+- Brighter heat/cool arc and knob colours when the thermostat is on; greyed-out when off for clearer power-state distinction
+- Power and boost controls grouped below the dial
+
 ## [0.3.1] - 2026-07-27
 
 ### Fixed

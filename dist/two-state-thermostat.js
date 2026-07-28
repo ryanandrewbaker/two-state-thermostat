@@ -1335,7 +1335,11 @@ const Mt = Q`
   }
 
   .power-button {
-    border-color: color-mix(in srgb, var(--secondary-text-color, #888) 55%, transparent);
+    border-color: color-mix(
+      in srgb,
+      var(--secondary-text-color, #888) 55%,
+      transparent
+    );
     color: var(--secondary-text-color);
   }
 
@@ -1411,8 +1415,16 @@ const Mt = Q`
   }
 
   .dial-wrap.subdued {
-    --heat-color: color-mix(in srgb, var(--secondary-text-color, #888) 82%, #c86b3a 18%);
-    --cool-color: color-mix(in srgb, var(--secondary-text-color, #888) 82%, #4a78b8 18%);
+    --heat-color: color-mix(
+      in srgb,
+      var(--secondary-text-color, #888) 82%,
+      #c86b3a 18%
+    );
+    --cool-color: color-mix(
+      in srgb,
+      var(--secondary-text-color, #888) 82%,
+      #4a78b8 18%
+    );
   }
 
   svg {

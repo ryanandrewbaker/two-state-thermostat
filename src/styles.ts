@@ -138,28 +138,36 @@ export const cardStyles = css`
   }
 
   .fan-section {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+    margin-top: -4px;
   }
 
-  .fan-header {
+  .fan-row {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
+    min-width: 0;
   }
 
-  .fan-label {
-    font-size: 0.875rem;
-    color: var(--primary-text-color);
+  .fan-row fan-slider {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .fan-rec {
+    flex-shrink: 0;
+    font-size: 0.6875rem;
+    color: var(--secondary-text-color);
+    white-space: nowrap;
   }
 
   .auto-toggle {
+    flex-shrink: 0;
     min-width: auto;
+    min-height: 32px;
+    height: 32px;
     border-radius: 999px;
-    padding: 0 14px;
-    font-size: 0.8125rem;
+    padding: 0 10px;
+    font-size: 0.75rem;
   }
 
   .auto-toggle.active {
@@ -317,8 +325,20 @@ export const dialStyles = css`
       stroke-width 0.2s ease;
   }
 
+  .current-marker {
+    pointer-events: none;
+  }
+
+  .current-dot-halo {
+    fill: var(--ha-card-background, var(--card-background-color, #1c1c1c));
+    opacity: 0.92;
+  }
+
   .current-dot {
-    fill: var(--secondary-text-color);
+    fill: #ffffff;
+    stroke: var(--ha-card-background, var(--card-background-color, #1c1c1c));
+    stroke-width: 2;
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.55));
   }
 
   .center {
@@ -395,9 +415,13 @@ export const dialStyles = css`
 `;
 
 export const fanSliderStyles = css`
+  :host {
+    display: block;
+  }
+
   .slider {
     position: relative;
-    height: 42px;
+    height: 28px;
     display: flex;
     align-items: center;
     touch-action: none;
@@ -407,17 +431,21 @@ export const fanSliderStyles = css`
     position: absolute;
     left: 0;
     right: 0;
-    height: 4px;
-    border-radius: 2px;
+    top: 50%;
+    height: 3px;
+    margin-top: -1.5px;
+    border-radius: 999px;
     background: var(--divider-color, rgba(255, 255, 255, 0.12));
   }
 
   .track-fill {
     position: absolute;
     left: 0;
-    height: 4px;
-    border-radius: 2px;
-    background: var(--primary-color, #03a9f4);
+    top: 50%;
+    height: 3px;
+    margin-top: -1.5px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--primary-color, #03a9f4) 65%, transparent);
     pointer-events: none;
   }
 
@@ -430,13 +458,10 @@ export const fanSliderStyles = css`
   }
 
   .step {
-    width: 42px;
-    height: 42px;
+    width: 28px;
+    height: 28px;
     border: none;
     background: transparent;
-    color: var(--secondary-text-color);
-    font-size: 0.6875rem;
-    border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -444,9 +469,26 @@ export const fanSliderStyles = css`
     padding: 0;
   }
 
-  .step.active {
-    color: var(--primary-text-color);
-    background: color-mix(in srgb, var(--primary-color, #03a9f4) 18%, transparent);
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--divider-color, rgba(255, 255, 255, 0.28));
+    background: var(--ha-card-background, var(--card-background-color, #1c1c1c));
+    box-sizing: border-box;
+    transition:
+      transform 0.15s ease,
+      border-color 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .step.active .dot {
+    width: 14px;
+    height: 14px;
+    border-color: var(--primary-color, #03a9f4);
+    background: var(--primary-color, #03a9f4);
+    box-shadow: 0 0 0 2px
+      color-mix(in srgb, var(--primary-color, #03a9f4) 22%, transparent);
   }
 
   .step.readonly {
@@ -456,5 +498,6 @@ export const fanSliderStyles = css`
   .step:focus-visible {
     outline: 2px solid var(--primary-color, #03a9f4);
     outline-offset: 2px;
+    border-radius: 50%;
   }
 `;

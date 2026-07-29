@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.7] - 2026-07-29
+
+### Changed
+
+- Current temperature marker on the dial is white, larger, and drawn above target knobs so it stays visible on the arcs
+- Fan controls consolidated into a single compact row with dot-style speed steps
+
+## [0.3.6] - 2026-07-28
+
+### Fixed
+
+- Reverted Sections grid sizing from `rows: auto` to fixed 6×8 cells and raised `min_columns` to 6 so cards stay half-width instead of shrinking into narrow strips.
+
 ## [0.3.5] - 2026-07-28
 
 ### Fixed

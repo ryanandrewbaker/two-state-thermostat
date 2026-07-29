@@ -64,7 +64,7 @@ export class TwoStageThermostatCard extends LitElement {
 
   /**
    * Approximate row count for legacy Masonry layouts.
-   * Sections dashboards use {@link getGridOptions} `rows: "auto"` instead.
+   * Sections dashboards use {@link getGridOptions} instead.
    */
   public getCardSize(): number {
     return 8;
@@ -73,8 +73,9 @@ export class TwoStageThermostatCard extends LitElement {
   public getGridOptions(): CardGridOptions {
     return {
       columns: 6,
-      min_columns: 4,
-      rows: "auto",
+      min_columns: 6,
+      rows: 8,
+      min_rows: 7,
     };
   }
 
@@ -139,8 +140,7 @@ export class TwoStageThermostatCard extends LitElement {
             view.fan.available
               ? html`
                   <div class="fan-section">
-                    <div class="fan-header">
-                      <span class="fan-label">${view.fan.displayLabel}</span>
+                    <div class="fan-row">
                       <button
                         class="auto-toggle ${view.fan.isAuto ? "active" : ""}"
                         type="button"
@@ -155,24 +155,27 @@ export class TwoStageThermostatCard extends LitElement {
                       >
                         Auto
                       </button>
+                      <fan-slider
+                        .options=${fanOptions}
+                        .index=${view.fan.sliderIndex}
+                        .readOnly=${view.fan.readOnly}
+                        .isAuto=${view.fan.isAuto}
+                        @fan-select=${this._handleFanSelect}
+                      ></fan-slider>
+                      ${
+                        resolved.show_recommended_fan !== false &&
+                        view.fan.recommendedValue
+                          ? html`
+                              <span
+                                class="fan-rec"
+                                title="Recommended fan speed: ${view.fan.recommendedValue}"
+                              >
+                                Rec: ${view.fan.recommendedValue}
+                              </span>
+                            `
+                          : nothing
+                      }
                     </div>
-                    <fan-slider
-                      .options=${fanOptions}
-                      .index=${view.fan.sliderIndex}
-                      .readOnly=${view.fan.readOnly}
-                      .isAuto=${view.fan.isAuto}
-                      @fan-select=${this._handleFanSelect}
-                    ></fan-slider>
-                    ${
-                      resolved.show_recommended_fan !== false &&
-                      view.fan.recommendedValue
-                        ? html`
-                            <div class="secondary-status">
-                              Recommended: ${view.fan.recommendedValue}
-                            </div>
-                          `
-                        : nothing
-                    }
                   </div>
                 `
               : nothing

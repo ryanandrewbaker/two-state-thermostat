@@ -87,14 +87,14 @@ describe("card grid sizing", () => {
     expect(card.getCardSize()).toBe(8);
   });
 
-  it("getGridOptions declares automatic row height for Sections dashboards", () => {
+  it("getGridOptions declares fixed half-width sizing for Sections dashboards", () => {
     const card = new TwoStageThermostatCard();
-    const options = card.getGridOptions();
-
-    expect(options.rows).toBe("auto");
-    expect(options.columns).toBe(6);
-    expect(options.min_columns).toBe(4);
-    expect(options).not.toHaveProperty("min_rows");
+    expect(card.getGridOptions()).toEqual({
+      columns: 6,
+      min_columns: 6,
+      rows: 8,
+      min_rows: 7,
+    });
   });
 
   it("keeps fan controls in normal document flow below the dial", async () => {

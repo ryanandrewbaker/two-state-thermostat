@@ -38,10 +38,11 @@ export class FanSlider extends LitElement {
                 type="button"
                 ?disabled=${this.readOnly}
                 aria-label=${option.label}
+                title=${option.label}
                 aria-current=${index === this.index ? "true" : "false"}
                 @click=${() => this._select(index)}
               >
-                ${option.label.charAt(0)}
+                <span class="dot"></span>
               </button>
             `,
           )}

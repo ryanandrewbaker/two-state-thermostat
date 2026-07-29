@@ -150,13 +150,28 @@ export class ClimateDial extends LitElement {
             "remaining",
             arc,
           )}
-          ${
-            currentDot
-              ? svg`<circle class="current-dot" cx=${currentDot.x} cy=${currentDot.y} r="3"></circle>`
-              : null
-          }
           ${this._renderKnob("low", lowKnob, targetLow, "Heating target")}
           ${this._renderKnob("high", highKnob, targetHigh, "Cooling target")}
+          ${
+            currentDot
+              ? svg`
+                  <g class="current-marker">
+                    <circle
+                      class="current-dot-halo"
+                      cx=${currentDot.x}
+                      cy=${currentDot.y}
+                      r="9"
+                    ></circle>
+                    <circle
+                      class="current-dot"
+                      cx=${currentDot.x}
+                      cy=${currentDot.y}
+                      r="5.5"
+                    ></circle>
+                  </g>
+                `
+              : null
+          }
         </svg>
         <div class="center">
           <div

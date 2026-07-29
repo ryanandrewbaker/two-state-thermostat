@@ -188,18 +188,21 @@ Missing optional entities omit their UI sections gracefully.
 
 ### Sections dashboard layout
 
-New cards default to automatic grid row height (`rows: auto`) so the card reserves enough vertical space for fan controls, Boost, and responsive text wrapping.
+New cards default to **half width** (6 of 12 columns) and **8 rows** — two cards per row at a readable width, with enough height for fan controls and Boost.
 
-For cards that were already saved with a numeric `grid_options.rows` value, Home Assistant keeps that per-card sizing. Edit the card once and set:
+If you previously set `rows: auto`, replace it with fixed sizing:
 
 ```yaml
 type: custom:two-state-thermostat
 entity: climate.family_room_auto_climate
 grid_options:
-  rows: auto
+  columns: 6
+  rows: 8
 ```
 
-`getCardSize()` remains for legacy Masonry layouts; Sections dashboards use `getGridOptions().rows` instead.
+Home Assistant keeps saved per-card `grid_options`; updating the card bundle alone does not change existing dashboards. Cards without fan controls may have a little extra vertical space at `rows: 8`; try `rows: 5` or `6` for those.
+
+`getCardSize()` is for legacy Masonry layouts only.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the full entity contract and development guidelines.
 

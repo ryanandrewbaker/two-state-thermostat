@@ -77,7 +77,29 @@ export class ClimateDial extends LitElement {
   }
 
   private get arcState() {
-    return describeArcState(this.viewState.operatingState);
+    const base = describeArcState(this.viewState.operatingState);
+    if (!this._dragTarget) return base;
+
+    const geo = this.geometry;
+    if (
+      this._dragTarget === "low" &&
+      geo.currentAngle !== null &&
+      geo.lowAngle !== null &&
+      geo.currentAngle < geo.lowAngle
+    ) {
+      return { ...base, warmActive: true, warmStrong: true, subdued: false };
+    }
+
+    if (
+      this._dragTarget === "high" &&
+      geo.currentAngle !== null &&
+      geo.highAngle !== null &&
+      geo.currentAngle > geo.highAngle
+    ) {
+      return { ...base, coolActive: true, coolStrong: true, subdued: false };
+    }
+
+    return base;
   }
 
   private get displayClimate(): ClimateRange {
@@ -112,7 +134,7 @@ export class ClimateDial extends LitElement {
     const displayClimate = this.displayClimate;
     const arc = this.arcState;
     const geo = this.geometry;
-    const segments = getArcRemainingSegments(geo, operatingState);
+    const segments = getArcRemainingSegments(geo, operatingState, this._dragTarget);
     const labelTone = getStateLabelTone(operatingState);
     const cx = 100;
     const cy = 100;
@@ -155,20 +177,12 @@ export class ClimateDial extends LitElement {
           ${
             currentDot
               ? svg`
-                  <g class="current-marker">
-                    <circle
-                      class="current-dot-halo"
-                      cx=${currentDot.x}
-                      cy=${currentDot.y}
-                      r="9"
-                    ></circle>
-                    <circle
-                      class="current-dot"
-                      cx=${currentDot.x}
-                      cy=${currentDot.y}
-                      r="5.5"
-                    ></circle>
-                  </g>
+                  <circle
+                    class="current-dot"
+                    cx=${currentDot.x}
+                    cy=${currentDot.y}
+                    r="5.5"
+                  ></circle>
                 `
               : null
           }

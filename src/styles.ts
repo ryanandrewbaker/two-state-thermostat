@@ -325,20 +325,9 @@ export const dialStyles = css`
       stroke-width 0.2s ease;
   }
 
-  .current-marker {
-    pointer-events: none;
-  }
-
-  .current-dot-halo {
-    fill: var(--ha-card-background, var(--card-background-color, #1c1c1c));
-    opacity: 0.92;
-  }
-
   .current-dot {
     fill: #ffffff;
-    stroke: var(--ha-card-background, var(--card-background-color, #1c1c1c));
-    stroke-width: 2;
-    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.55));
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.45));
   }
 
   .center {

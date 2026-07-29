@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.8] - 2026-07-29
+
+### Changed
+
+- Current temperature dot on the dial no longer has a dark outline
+- Dragging a heat or cool target past the current temperature now live-previews the prominent arc gap needed to reach that setpoint
+
 ## [0.3.7] - 2026-07-29
 
 ### Changed

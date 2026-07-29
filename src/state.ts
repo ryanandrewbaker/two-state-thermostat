@@ -615,6 +615,7 @@ export interface ArcRemainingSegments {
 export function getArcRemainingSegments(
   geo: ArcGeometry,
   operatingState: OperatingStateKey,
+  dragTarget: "low" | "high" | null = null,
 ): ArcRemainingSegments {
   const { startAngle, endAngle, currentAngle, lowAngle, highAngle } = geo;
   let heatBase: ArcAngleSegment | null = null;
@@ -622,12 +623,14 @@ export function getArcRemainingSegments(
   let coolBase: ArcAngleSegment | null = null;
   let coolRemaining: ArcAngleSegment | null = null;
 
+  const showHeatGap =
+    currentAngle !== null &&
+    lowAngle !== null &&
+    currentAngle < lowAngle &&
+    (isHeatingState(operatingState) || dragTarget === "low");
+
   if (lowAngle !== null) {
-    if (
-      isHeatingState(operatingState) &&
-      currentAngle !== null &&
-      currentAngle < lowAngle
-    ) {
+    if (showHeatGap) {
       heatBase = { start: startAngle, end: currentAngle };
       heatRemaining = { start: currentAngle, end: lowAngle };
     } else {
@@ -635,12 +638,14 @@ export function getArcRemainingSegments(
     }
   }
 
+  const showCoolGap =
+    currentAngle !== null &&
+    highAngle !== null &&
+    currentAngle > highAngle &&
+    (isCoolingState(operatingState) || dragTarget === "high");
+
   if (highAngle !== null) {
-    if (
-      isCoolingState(operatingState) &&
-      currentAngle !== null &&
-      currentAngle > highAngle
-    ) {
+    if (showCoolGap) {
       coolRemaining = { start: highAngle, end: currentAngle };
       coolBase = { start: currentAngle, end: endAngle };
     } else {

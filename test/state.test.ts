@@ -236,6 +236,48 @@ describe("arc geometry", () => {
     expect(segments.coolRemaining!.start).toBe(geometry.highAngle);
     expect(segments.coolRemaining!.end).toBe(geometry.currentAngle);
   });
+
+  it("shows heating gap while dragging the low target past current temperature", () => {
+    const geometry = getArcGeometry({
+      current: 21.8,
+      targetLow: 24.5,
+      targetHigh: 27,
+      minTemp: 16,
+      maxTemp: 30,
+      step: 0.5,
+      hvacMode: "heat_cool",
+      isOn: true,
+    });
+
+    const idleSegments = getArcRemainingSegments(geometry, "idle");
+    expect(idleSegments.heatRemaining).toBeNull();
+
+    const dragSegments = getArcRemainingSegments(geometry, "idle", "low");
+    expect(dragSegments.heatRemaining).not.toBeNull();
+    expect(dragSegments.heatRemaining!.start).toBe(geometry.currentAngle);
+    expect(dragSegments.heatRemaining!.end).toBe(geometry.lowAngle);
+  });
+
+  it("shows cooling gap while dragging the high target past current temperature", () => {
+    const geometry = getArcGeometry({
+      current: 28,
+      targetLow: 22,
+      targetHigh: 25,
+      minTemp: 16,
+      maxTemp: 30,
+      step: 0.5,
+      hvacMode: "heat_cool",
+      isOn: true,
+    });
+
+    const idleSegments = getArcRemainingSegments(geometry, "idle");
+    expect(idleSegments.coolRemaining).toBeNull();
+
+    const dragSegments = getArcRemainingSegments(geometry, "idle", "high");
+    expect(dragSegments.coolRemaining).not.toBeNull();
+    expect(dragSegments.coolRemaining!.start).toBe(geometry.highAngle);
+    expect(dragSegments.coolRemaining!.end).toBe(geometry.currentAngle);
+  });
 });
 
 describe("getStateLabelTone", () => {

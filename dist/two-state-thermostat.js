@@ -247,22 +247,22 @@ let L = class extends HTMLElement {
   }
 };
 L.elementStyles = [], L.shadowRootOptions = { mode: "open" }, L[W("elementProperties")] = /* @__PURE__ */ new Map(), L[W("finalized")] = /* @__PURE__ */ new Map(), Se?.({ ReactiveElement: L }), (ct.reactiveElementVersions ??= []).push("2.1.2");
-const St = globalThis, Ht = (e) => e, lt = St.trustedTypes, Ft = lt ? lt.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, ee = "$lit$", A = `lit$${Math.random().toFixed(9).slice(2)}$`, ne = "?" + A, Ee = `<${ne}>`, k = document, X = () => k.createComment(""), Y = (e) => e === null || typeof e != "object" && typeof e != "function", Et = Array.isArray, Ce = (e) => Et(e) || typeof e?.[Symbol.iterator] == "function", gt = `[ 	
+const St = globalThis, Ht = (e) => e, lt = St.trustedTypes, Ft = lt ? lt.createPolicy("lit-html", { createHTML: (e) => e }) : void 0, ee = "$lit$", w = `lit$${Math.random().toFixed(9).slice(2)}$`, ne = "?" + w, Ee = `<${ne}>`, T = document, X = () => T.createComment(""), Y = (e) => e === null || typeof e != "object" && typeof e != "function", Et = Array.isArray, Ce = (e) => Et(e) || typeof e?.[Symbol.iterator] == "function", gt = `[ 	
 \f\r]`, j = /<(?:(!--|\/[^a-zA-Z])|(\/?[a-zA-Z][^>\s]*)|(\/?$))/g, It = /-->/g, zt = />/g, E = RegExp(`>|${gt}(?:([^\\s"'>=/]+)(${gt}*=${gt}*(?:[^ 	
-\f\r"'\`<>=]|("|')|))|$)`, "g"), jt = /'/g, Vt = /"/g, ie = /^(?:script|style|textarea|title)$/i, oe = (e) => (t, ...n) => ({ _$litType$: e, strings: t, values: n }), h = oe(1), vt = oe(2), N = /* @__PURE__ */ Symbol.for("lit-noChange"), p = /* @__PURE__ */ Symbol.for("lit-nothing"), Kt = /* @__PURE__ */ new WeakMap(), C = k.createTreeWalker(k, 129);
+\f\r"'\`<>=]|("|')|))|$)`, "g"), jt = /'/g, Vt = /"/g, ie = /^(?:script|style|textarea|title)$/i, oe = (e) => (t, ...n) => ({ _$litType$: e, strings: t, values: n }), h = oe(1), vt = oe(2), N = /* @__PURE__ */ Symbol.for("lit-noChange"), p = /* @__PURE__ */ Symbol.for("lit-nothing"), Kt = /* @__PURE__ */ new WeakMap(), C = T.createTreeWalker(T, 129);
 function re(e, t) {
   if (!Et(e) || !e.hasOwnProperty("raw")) throw Error("invalid template strings array");
   return Ft !== void 0 ? Ft.createHTML(t) : t;
 }
-const ke = (e, t) => {
+const Te = (e, t) => {
   const n = e.length - 1, i = [];
   let o, r = t === 2 ? "<svg>" : t === 3 ? "<math>" : "", s = j;
   for (let a = 0; a < n; a++) {
     const l = e[a];
     let c, d, u = -1, _ = 0;
     for (; _ < l.length && (s.lastIndex = _, d = s.exec(l), d !== null); ) _ = s.lastIndex, s === j ? d[1] === "!--" ? s = It : d[1] !== void 0 ? s = zt : d[2] !== void 0 ? (ie.test(d[2]) && (o = RegExp("</" + d[2], "g")), s = E) : d[3] !== void 0 && (s = E) : s === E ? d[0] === ">" ? (s = o ?? j, u = -1) : d[1] === void 0 ? u = -2 : (u = s.lastIndex - d[2].length, c = d[1], s = d[3] === void 0 ? E : d[3] === '"' ? Vt : jt) : s === Vt || s === jt ? s = E : s === It || s === zt ? s = j : (s = E, o = void 0);
-    const m = s === E && e[a + 1].startsWith("/>") ? " " : "";
-    r += s === j ? l + Ee : u >= 0 ? (i.push(c), l.slice(0, u) + ee + l.slice(u) + A + m) : l + A + (u === -2 ? a : m);
+    const f = s === E && e[a + 1].startsWith("/>") ? " " : "";
+    r += s === j ? l + Ee : u >= 0 ? (i.push(c), l.slice(0, u) + ee + l.slice(u) + w + f) : l + w + (u === -2 ? a : f);
   }
   return [re(e, r + (e[n] || "<?>") + (t === 2 ? "</svg>" : t === 3 ? "</math>" : "")), i];
 };
@@ -271,7 +271,7 @@ class Z {
     let o;
     this.parts = [];
     let r = 0, s = 0;
-    const a = t.length - 1, l = this.parts, [c, d] = ke(t, n);
+    const a = t.length - 1, l = this.parts, [c, d] = Te(t, n);
     if (this.el = Z.createElement(c, i), C.currentNode = this.el.content, n === 2 || n === 3) {
       const u = this.el.content.firstChild;
       u.replaceWith(...u.childNodes);
@@ -279,27 +279,27 @@ class Z {
     for (; (o = C.nextNode()) !== null && l.length < a; ) {
       if (o.nodeType === 1) {
         if (o.hasAttributes()) for (const u of o.getAttributeNames()) if (u.endsWith(ee)) {
-          const _ = d[s++], m = o.getAttribute(u).split(A), v = /([.?@])?(.*)/.exec(_);
-          l.push({ type: 1, index: r, name: v[2], strings: m, ctor: v[1] === "." ? Pe : v[1] === "?" ? Oe : v[1] === "@" ? Me : dt }), o.removeAttribute(u);
-        } else u.startsWith(A) && (l.push({ type: 6, index: r }), o.removeAttribute(u));
+          const _ = d[s++], f = o.getAttribute(u).split(w), v = /([.?@])?(.*)/.exec(_);
+          l.push({ type: 1, index: r, name: v[2], strings: f, ctor: v[1] === "." ? Pe : v[1] === "?" ? Oe : v[1] === "@" ? Me : dt }), o.removeAttribute(u);
+        } else u.startsWith(w) && (l.push({ type: 6, index: r }), o.removeAttribute(u));
         if (ie.test(o.tagName)) {
-          const u = o.textContent.split(A), _ = u.length - 1;
+          const u = o.textContent.split(w), _ = u.length - 1;
           if (_ > 0) {
             o.textContent = lt ? lt.emptyScript : "";
-            for (let m = 0; m < _; m++) o.append(u[m], X()), C.nextNode(), l.push({ type: 2, index: ++r });
+            for (let f = 0; f < _; f++) o.append(u[f], X()), C.nextNode(), l.push({ type: 2, index: ++r });
             o.append(u[_], X());
           }
         }
       } else if (o.nodeType === 8) if (o.data === ne) l.push({ type: 2, index: r });
       else {
         let u = -1;
-        for (; (u = o.data.indexOf(A, u + 1)) !== -1; ) l.push({ type: 7, index: r }), u += A.length - 1;
+        for (; (u = o.data.indexOf(w, u + 1)) !== -1; ) l.push({ type: 7, index: r }), u += w.length - 1;
       }
       r++;
     }
   }
   static createElement(t, n) {
-    const i = k.createElement("template");
+    const i = T.createElement("template");
     return i.innerHTML = t, i;
   }
 }
@@ -309,7 +309,7 @@ function B(e, t, n = e, i) {
   const r = Y(t) ? void 0 : t._$litDirective$;
   return o?.constructor !== r && (o?._$AO?.(!1), r === void 0 ? o = void 0 : (o = new r(e), o._$AT(e, n, i)), i !== void 0 ? (n._$Co ??= [])[i] = o : n._$Cl = o), o !== void 0 && (t = B(e, o._$AS(e, t.values), o, i)), t;
 }
-class Te {
+class ke {
   constructor(t, n) {
     this._$AV = [], this._$AN = void 0, this._$AD = t, this._$AM = n;
   }
@@ -320,7 +320,7 @@ class Te {
     return this._$AM._$AU;
   }
   u(t) {
-    const { el: { content: n }, parts: i } = this._$AD, o = (t?.creationScope ?? k).importNode(n, !0);
+    const { el: { content: n }, parts: i } = this._$AD, o = (t?.creationScope ?? T).importNode(n, !0);
     C.currentNode = o;
     let r = C.nextNode(), s = 0, a = 0, l = i[0];
     for (; l !== void 0; ) {
@@ -330,7 +330,7 @@ class Te {
       }
       s !== l?.index && (r = C.nextNode(), s++);
     }
-    return C.currentNode = k, o;
+    return C.currentNode = T, o;
   }
   p(t) {
     let n = 0;
@@ -365,13 +365,13 @@ class tt {
     this._$AH !== t && (this._$AR(), this._$AH = this.O(t));
   }
   _(t) {
-    this._$AH !== p && Y(this._$AH) ? this._$AA.nextSibling.data = t : this.T(k.createTextNode(t)), this._$AH = t;
+    this._$AH !== p && Y(this._$AH) ? this._$AA.nextSibling.data = t : this.T(T.createTextNode(t)), this._$AH = t;
   }
   $(t) {
     const { values: n, _$litType$: i } = t, o = typeof i == "number" ? this._$AC(t) : (i.el === void 0 && (i.el = Z.createElement(re(i.h, i.h[0]), this.options)), i);
     if (this._$AH?._$AD === o) this._$AH.p(n);
     else {
-      const r = new Te(o, this), s = r.u(this.options);
+      const r = new ke(o, this), s = r.u(this.options);
       r.p(n), this.T(s), this._$AH = r;
     }
   }
@@ -525,16 +525,16 @@ const Ue = { attribute: !0, type: String, converter: at, reflect: !1, hasChanged
   }
   throw Error("Unsupported decorator location: " + i);
 };
-function f(e) {
+function m(e) {
   return (t, n) => typeof n == "object" ? Re(e, t, n) : ((i, o, r) => {
     const s = o.hasOwnProperty(r);
     return o.constructor.createProperty(r, i), s ? Object.getOwnPropertyDescriptor(o, r) : void 0;
   })(e, t, n);
 }
 function F(e) {
-  return f({ ...e, state: !0, attribute: !1 });
+  return m({ ...e, state: !0, attribute: !1 });
 }
-const $t = "two-state-thermostat", kt = "two-state-thermostat", se = "Two State Thermostat", He = "0.3.7", Fe = "https://github.com/ryanandrewbaker/two-state-thermostat", Tt = "heat_cool", Pt = 0.5, Ot = 1, Ie = 5, ze = 35, ae = [
+const $t = "two-state-thermostat", Tt = "two-state-thermostat", se = "Two State Thermostat", He = "0.3.8", Fe = "https://github.com/ryanandrewbaker/two-state-thermostat", kt = "heat_cool", Pt = 0.5, Ot = 1, Ie = 5, ze = 35, ae = [
   { value: "quiet", label: "Quiet" },
   { value: "low", label: "Low" },
   { value: "medium", label: "Medium" },
@@ -552,7 +552,7 @@ const $t = "two-state-thermostat", kt = "two-state-thermostat", se = "Two State 
   "input_boolean",
   "input_select",
   "script"
-], We = ["climate.set_fan_mode"], x = 135, D = 405, le = D - x;
+], We = ["climate.set_fan_mode"], A = 135, D = 405, le = D - A;
 function et(e, t) {
   if (!(!e || !t))
     return e.states[t];
@@ -743,7 +743,7 @@ function pt(e, t) {
     power_on_mode: yt(
       t.power_on_mode,
       i.power_on_mode,
-      Tt
+      kt
     ),
     fan_options: Qe(t.fan_options, i.fan_options),
     target_step: yt(
@@ -932,7 +932,7 @@ let U = class extends b {
               <input
                 id="power_on_mode"
                 type="text"
-                .value=${this._config.power_on_mode ?? Tt}
+                .value=${this._config.power_on_mode ?? kt}
                 @change=${(n) => this._update({
       power_on_mode: n.target.value || void 0
     })}
@@ -1213,7 +1213,7 @@ U.styles = Q`
     }
   `;
 ht([
-  f({ attribute: !1 })
+  m({ attribute: !1 })
 ], U.prototype, "hass", 2);
 ht([
   F()
@@ -1222,7 +1222,7 @@ ht([
   F()
 ], U.prototype, "_advancedOpen", 2);
 U = ht([
-  H(`${kt}-editor`)
+  H(`${Tt}-editor`)
 ], U);
 const Mt = Q`
   :host {
@@ -1547,20 +1547,9 @@ const Mt = Q`
       stroke-width 0.2s ease;
   }
 
-  .current-marker {
-    pointer-events: none;
-  }
-
-  .current-dot-halo {
-    fill: var(--ha-card-background, var(--card-background-color, #1c1c1c));
-    opacity: 0.92;
-  }
-
   .current-dot {
     fill: #ffffff;
-    stroke: var(--ha-card-background, var(--card-background-color, #1c1c1c));
-    stroke-width: 2;
-    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.55));
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.45));
   }
 
   .center {
@@ -1726,7 +1715,7 @@ var pn = Object.defineProperty, hn = Object.getOwnPropertyDescriptor, nt = (e, t
     (s = e[r]) && (o = (i ? s(t, n, o) : s(o)) || o);
   return i && o && pn(t, n, o), o;
 };
-let T = class extends b {
+let k = class extends b {
   constructor() {
     super(...arguments), this.active = !1, this.disabled = !1, this.hasCancel = !1, this.remaining = null;
   }
@@ -1757,22 +1746,22 @@ let T = class extends b {
     ));
   }
 };
-T.styles = [Mt];
+k.styles = [Mt];
 nt([
-  f({ type: Boolean })
-], T.prototype, "active", 2);
+  m({ type: Boolean })
+], k.prototype, "active", 2);
 nt([
-  f({ type: Boolean })
-], T.prototype, "disabled", 2);
+  m({ type: Boolean })
+], k.prototype, "disabled", 2);
 nt([
-  f({ type: Boolean })
-], T.prototype, "hasCancel", 2);
+  m({ type: Boolean })
+], k.prototype, "hasCancel", 2);
 nt([
-  f({ type: String })
-], T.prototype, "remaining", 2);
-T = nt([
+  m({ type: String })
+], k.prototype, "remaining", 2);
+k = nt([
   H("boost-button")
-], T);
+], k);
 function _n(e) {
   if (!e || e === "unavailable" || e === "unknown")
     return "unknown";
@@ -1798,7 +1787,7 @@ function g(e, t) {
   if (!(!e || !t))
     return e.states[t];
 }
-function w(e) {
+function $(e) {
   if (typeof e == "number" && Number.isFinite(e)) return e;
   if (typeof e == "string" && e.trim() !== "") {
     const t = Number(e);
@@ -1869,7 +1858,7 @@ function yn(e, t) {
   else if (!V(o))
     n.push(`Climate entity unavailable: ${t.entity}`);
   else {
-    const a = w(o.attributes.target_temp_low), l = w(o.attributes.target_temp_high);
+    const a = $(o.attributes.target_temp_low), l = $(o.attributes.target_temp_high);
     (a === null || l === null) && n.push("Climate entity does not expose target_temp_low/high");
   }
   if (t.usesHvacActionFallback)
@@ -1908,7 +1897,7 @@ function yn(e, t) {
   return { errors: n, warnings: i };
 }
 function bn(e, t) {
-  const n = g(e, t.entity), i = g(e, t.temperature_entity), o = w(i?.state), r = w(n?.attributes.current_temperature), s = o ?? r, a = w(n?.attributes.target_temp_low), l = w(n?.attributes.target_temp_high), c = w(n?.attributes.min_temp) ?? Ie, d = w(n?.attributes.max_temp) ?? ze, u = t.target_step ?? w(n?.attributes.target_temp_step) ?? Pt, _ = typeof n?.attributes.hvac_mode == "string" ? n.attributes.hvac_mode : n?.state ?? null;
+  const n = g(e, t.entity), i = g(e, t.temperature_entity), o = $(i?.state), r = $(n?.attributes.current_temperature), s = o ?? r, a = $(n?.attributes.target_temp_low), l = $(n?.attributes.target_temp_high), c = $(n?.attributes.min_temp) ?? Ie, d = $(n?.attributes.max_temp) ?? ze, u = t.target_step ?? $(n?.attributes.target_temp_step) ?? Pt, _ = typeof n?.attributes.hvac_mode == "string" ? n.attributes.hvac_mode : n?.state ?? null;
   return {
     current: s,
     targetLow: a,
@@ -1943,7 +1932,7 @@ function $n(e, t) {
       usesSimplifiedModel: !1
     };
   if (a) {
-    const v = i?.state === "on", $ = o?.state ?? null, M = r?.state ?? s?.state ?? $, z = s?.state ?? null, mt = v ? M ?? z : $ ?? M, _e = v ? `Auto · ${rt(n, mt)}` : `Manual · ${rt(n, mt)}`, Dt = Math.max(
+    const v = i?.state === "on", S = o?.state ?? null, M = r?.state ?? s?.state ?? S, z = s?.state ?? null, mt = v ? M ?? z : S ?? M, _e = v ? `Auto · ${rt(n, mt)}` : `Manual · ${rt(n, mt)}`, Dt = Math.max(
       0,
       n.findIndex(
         (fe) => fe.value.toLowerCase() === String(mt).toLowerCase()
@@ -1952,7 +1941,7 @@ function $n(e, t) {
     return {
       available: !0,
       isAuto: v,
-      manualValue: $,
+      manualValue: S,
       effectiveValue: M,
       recommendedValue: z,
       displayLabel: _e,
@@ -1961,7 +1950,7 @@ function $n(e, t) {
       usesSimplifiedModel: !1
     };
   }
-  const c = o?.state ?? null, d = c?.toLowerCase() === Ve || c?.toLowerCase() === "automatic", u = d ? r?.state ?? s?.state ?? n[0]?.value ?? null : c, _ = d ? `Auto · ${rt(n, u)}` : `Manual · ${rt(n, u)}`, m = Math.max(
+  const c = o?.state ?? null, d = c?.toLowerCase() === Ve || c?.toLowerCase() === "automatic", u = d ? r?.state ?? s?.state ?? n[0]?.value ?? null : c, _ = d ? `Auto · ${rt(n, u)}` : `Manual · ${rt(n, u)}`, f = Math.max(
     0,
     n.findIndex(
       (v) => v.value.toLowerCase() === String(u).toLowerCase()
@@ -1974,7 +1963,7 @@ function $n(e, t) {
     effectiveValue: r?.state ?? null,
     recommendedValue: s?.state ?? null,
     displayLabel: _,
-    sliderIndex: m === -1 ? 0 : m,
+    sliderIndex: f === -1 ? 0 : f,
     readOnly: d,
     usesSimplifiedModel: !0
   };
@@ -2011,19 +2000,19 @@ function bt(e, t) {
 }
 function q(e, t, n) {
   const i = (e - t) / (n - t), o = Math.max(0, Math.min(1, i));
-  return x + o * le;
+  return A + o * le;
 }
 function pe(e) {
   let t = e;
-  for (; t < x; ) t += 360;
+  for (; t < A; ) t += 360;
   for (; t > D; ) t -= 360;
-  if (t >= x && t <= D)
+  if (t >= A && t <= D)
     return t;
-  const n = (e % 360 + 360) % 360, i = Math.abs(n - x), o = Math.abs(n - (D - 360));
-  return i <= o ? x : D;
+  const n = (e % 360 + 360) % 360, i = Math.abs(n - A), o = Math.abs(n - (D - 360));
+  return i <= o ? A : D;
 }
 function An(e, t, n) {
-  const o = (pe(e) - x) / le;
+  const o = (pe(e) - A) / le;
   return t + o * (n - t);
 }
 function Yt(e, t, n, i) {
@@ -2050,7 +2039,7 @@ function xn(e) {
     currentAngle: e.current === null ? null : q(e.current, e.minTemp, e.maxTemp),
     lowAngle: e.targetLow === null ? null : q(e.targetLow, e.minTemp, e.maxTemp),
     highAngle: e.targetHigh === null ? null : q(e.targetHigh, e.minTemp, e.maxTemp),
-    startAngle: x,
+    startAngle: A,
     endAngle: D
   };
 }
@@ -2072,13 +2061,16 @@ function En(e) {
 function Cn(e) {
   return e === "boost_cooling" || e === "maintain_cooling";
 }
-function kn(e, t) {
-  const { startAngle: n, endAngle: i, currentAngle: o, lowAngle: r, highAngle: s } = e;
-  let a = null, l = null, c = null, d = null;
-  return r !== null && (En(t) && o !== null && o < r ? (a = { start: n, end: o }, l = { start: o, end: r }) : a = { start: n, end: r }), s !== null && (Cn(t) && o !== null && o > s ? (d = { start: s, end: o }, c = { start: o, end: i }) : c = { start: s, end: i }), { heatBase: a, heatRemaining: l, coolBase: c, coolRemaining: d };
+function Tn(e, t, n = null) {
+  const { startAngle: i, endAngle: o, currentAngle: r, lowAngle: s, highAngle: a } = e;
+  let l = null, c = null, d = null, u = null;
+  const _ = r !== null && s !== null && r < s && (En(t) || n === "low");
+  s !== null && (_ ? (l = { start: i, end: r }, c = { start: r, end: s }) : l = { start: i, end: s });
+  const f = r !== null && a !== null && r > a && (Cn(t) || n === "high");
+  return a !== null && (f ? (u = { start: a, end: r }, d = { start: r, end: o }) : d = { start: a, end: o }), { heatBase: l, heatRemaining: c, coolBase: d, coolRemaining: u };
 }
-function Tn(e) {
-  return e.power_on_mode ?? Tt;
+function kn(e) {
+  return e.power_on_mode ?? kt;
 }
 function Pn(e) {
   return e.minimum_target_separation ?? Ot;
@@ -2163,7 +2155,7 @@ function Dn(e, t, n) {
   const i = e.getBoundingClientRect(), o = (t - i.left) / i.width * 200, r = (n - i.top) / i.height * 200, s = Math.atan2(r - 100, o - 100) * 180 / Math.PI;
   return pe(s);
 }
-let S = class extends b {
+let x = class extends b {
   constructor() {
     super(...arguments), this.minimumTargetSeparation = 1, this.disabled = !1, this._dragTarget = null, this._preview = null, this._handlePointerMove = (e) => {
       this._dragTarget && this._updatePreviewFromPointer(e, this._dragTarget);
@@ -2176,7 +2168,10 @@ let S = class extends b {
     super.disconnectedCallback(), this._endDrag(!1);
   }
   get arcState() {
-    return On(this.viewState.operatingState);
+    const e = On(this.viewState.operatingState);
+    if (!this._dragTarget) return e;
+    const t = this.geometry;
+    return this._dragTarget === "low" && t.currentAngle !== null && t.lowAngle !== null && t.currentAngle < t.lowAngle ? { ...e, warmActive: !0, warmStrong: !0, subdued: !1 } : this._dragTarget === "high" && t.currentAngle !== null && t.highAngle !== null && t.currentAngle > t.highAngle ? { ...e, coolActive: !0, coolStrong: !0, subdued: !1 } : e;
   }
   get displayClimate() {
     return this._preview ? {
@@ -2197,7 +2192,7 @@ let S = class extends b {
     return { int: n, dec: `.${i}` };
   }
   render() {
-    const { climate: e, operatingLabel: t, operatingState: n } = this.viewState, i = this.displayClimate, o = this.arcState, r = this.geometry, s = kn(r, n), a = Sn(n), l = 100, c = 100, d = 78, u = Zt(l, c, d, r.startAngle, r.endAngle), _ = this.splitTemp(e.current), m = r.lowAngle !== null ? G(l, c, d, r.lowAngle) : null, v = r.highAngle !== null ? G(l, c, d, r.highAngle) : null, $ = r.currentAngle !== null ? G(l, c, d, r.currentAngle) : null, M = i.targetLow, z = i.targetHigh;
+    const { climate: e, operatingLabel: t, operatingState: n } = this.viewState, i = this.displayClimate, o = this.arcState, r = this.geometry, s = Tn(r, n, this._dragTarget), a = Sn(n), l = 100, c = 100, d = 78, u = Zt(l, c, d, r.startAngle, r.endAngle), _ = this.splitTemp(e.current), f = r.lowAngle !== null ? G(l, c, d, r.lowAngle) : null, v = r.highAngle !== null ? G(l, c, d, r.highAngle) : null, S = r.currentAngle !== null ? G(l, c, d, r.currentAngle) : null, M = i.targetLow, z = i.targetHigh;
     return h`
       <div class="dial-wrap ${o.subdued ? "subdued" : ""}">
         <svg viewBox="0 0 200 200" aria-hidden="true">
@@ -2222,23 +2217,15 @@ let S = class extends b {
       "remaining",
       o
     )}
-          ${this._renderKnob("low", m, M, "Heating target")}
+          ${this._renderKnob("low", f, M, "Heating target")}
           ${this._renderKnob("high", v, z, "Cooling target")}
-          ${$ ? vt`
-                  <g class="current-marker">
-                    <circle
-                      class="current-dot-halo"
-                      cx=${$.x}
-                      cy=${$.y}
-                      r="9"
-                    ></circle>
-                    <circle
-                      class="current-dot"
-                      cx=${$.x}
-                      cy=${$.y}
-                      r="5.5"
-                    ></circle>
-                  </g>
+          ${S ? vt`
+                  <circle
+                    class="current-dot"
+                    cx=${S.x}
+                    cy=${S.y}
+                    r="5.5"
+                  ></circle>
                 ` : null}
         </svg>
         <div class="center">
@@ -2356,7 +2343,7 @@ let S = class extends b {
     );
   }
 };
-S.styles = [
+x.styles = [
   dn,
   Q`
       :host {
@@ -2376,23 +2363,23 @@ S.styles = [
     `
 ];
 I([
-  f({ attribute: !1 })
-], S.prototype, "viewState", 2);
+  m({ attribute: !1 })
+], x.prototype, "viewState", 2);
 I([
-  f({ type: Number })
-], S.prototype, "minimumTargetSeparation", 2);
+  m({ type: Number })
+], x.prototype, "minimumTargetSeparation", 2);
 I([
-  f({ type: Boolean })
-], S.prototype, "disabled", 2);
-I([
-  F()
-], S.prototype, "_dragTarget", 2);
+  m({ type: Boolean })
+], x.prototype, "disabled", 2);
 I([
   F()
-], S.prototype, "_preview", 2);
-S = I([
+], x.prototype, "_dragTarget", 2);
+I([
+  F()
+], x.prototype, "_preview", 2);
+x = I([
   H("climate-dial")
-], S);
+], x);
 var Nn = Object.defineProperty, Bn = Object.getOwnPropertyDescriptor, it = (e, t, n, i) => {
   for (var o = i > 1 ? void 0 : i ? Bn(t, n) : t, r = e.length - 1, s; r >= 0; r--)
     (s = e[r]) && (o = (i ? s(t, n, o) : s(o)) || o);
@@ -2455,16 +2442,16 @@ let P = class extends b {
 };
 P.styles = [un];
 it([
-  f({ attribute: !1 })
+  m({ attribute: !1 })
 ], P.prototype, "options", 2);
 it([
-  f({ type: Number })
+  m({ type: Number })
 ], P.prototype, "index", 2);
 it([
-  f({ type: Boolean })
+  m({ type: Boolean })
 ], P.prototype, "readOnly", 2);
 it([
-  f({ type: Boolean })
+  m({ type: Boolean })
 ], P.prototype, "isAuto", 2);
 P = it([
   H("fan-slider")
@@ -2500,10 +2487,10 @@ let J = class extends b {
 };
 J.styles = [Mt];
 Lt([
-  f({ type: Boolean })
+  m({ type: Boolean })
 ], J.prototype, "on", 2);
 Lt([
-  f({ type: Boolean })
+  m({ type: Boolean })
 ], J.prototype, "disabled", 2);
 J = Lt([
   H("power-button")
@@ -2521,7 +2508,7 @@ function Fn(e) {
     service: "set_hvac_mode",
     data: {
       entity_id: e.climate_entity,
-      hvac_mode: Tn(e)
+      hvac_mode: kn(e)
     }
   };
 }
@@ -2637,7 +2624,7 @@ let R = class extends b {
     this._config = e;
   }
   static getConfigElement() {
-    return document.createElement(`${kt}-editor`);
+    return document.createElement(`${Tt}-editor`);
   }
   static getStubConfig() {
     return {};
@@ -2775,7 +2762,7 @@ let R = class extends b {
 };
 R.styles = [Mt];
 ft([
-  f({ attribute: !1 })
+  m({ attribute: !1 })
 ], R.prototype, "hass", 2);
 ft([
   F()
@@ -2784,7 +2771,7 @@ ft([
   F()
 ], R.prototype, "_pending", 2);
 R = ft([
-  H(kt)
+  H(Tt)
 ], R);
 window.customCards = window.customCards ?? [];
 const Jt = window.customCards.findIndex((e) => e.type === $t), Qt = {

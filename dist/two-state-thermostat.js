@@ -534,7 +534,7 @@ function g(e) {
 function z(e) {
   return g({ ...e, state: !0, attribute: !1 });
 }
-const Et = "two-state-thermostat", Dt = "two-state-thermostat", _e = "Two State Thermostat", Xe = "0.4.1", Ye = "https://github.com/ryanandrewbaker/two-state-thermostat", Ht = "heat_cool", Ut = 0.5, Bt = 2, Qt = 2, Ze = 5, Je = 35, fe = [
+const Et = "two-state-thermostat", Dt = "two-state-thermostat", _e = "Two State Thermostat", Xe = "0.4.2", Ye = "https://github.com/ryanandrewbaker/two-state-thermostat", Ht = "heat_cool", Ut = 0.5, Bt = 2, Qt = 2, Ze = 5, Je = 35, fe = [
   { value: "quiet", label: "Quiet" },
   { value: "low", label: "Low" },
   { value: "medium", label: "Medium" },
@@ -2176,33 +2176,35 @@ function Un(e, t, n) {
   if (!n || e.targetLow === null || e.targetHigh === null) return null;
   const { minTemp: i, maxTemp: o, step: r, current: s } = e;
   if (Ae(t)) {
-    const a = e.targetLow, l = Math.max(
-      i,
-      A(a - Qt, r)
-    );
-    if (l >= a) return null;
-    let c = l;
-    return s !== null && (s >= a ? c = a : s > l && (c = s)), {
-      kind: "heat",
-      originalTarget: l,
-      boostedTarget: a,
-      knobClimate: { ...e, targetLow: l },
-      segment: oe(e, c, a)
-    };
-  }
-  if (xe(t)) {
-    const a = e.targetHigh, l = Math.min(
+    const a = e.targetLow, l = Math.min(
       o,
+      e.targetHigh,
       A(a + Qt, r)
     );
     if (l <= a) return null;
-    let c = l;
-    return s !== null && (s <= a ? c = a : s < l && (c = s)), {
+    let c = a;
+    return s !== null && (s >= l ? c = l : s > a && (c = s)), {
+      kind: "heat",
+      originalTarget: a,
+      boostedTarget: l,
+      knobClimate: e,
+      segment: oe(e, c, l)
+    };
+  }
+  if (xe(t)) {
+    const a = e.targetHigh, l = Math.max(
+      i,
+      e.targetLow,
+      A(a - Qt, r)
+    );
+    if (l >= a) return null;
+    let c = a;
+    return s !== null && (s <= l ? c = l : s < a && (c = s)), {
       kind: "cool",
-      originalTarget: l,
-      boostedTarget: a,
-      knobClimate: { ...e, targetHigh: l },
-      segment: oe(e, a, c)
+      originalTarget: a,
+      boostedTarget: l,
+      knobClimate: e,
+      segment: oe(e, l, c)
     };
   }
   return null;

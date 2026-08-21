@@ -403,9 +403,9 @@ describe("arc geometry", () => {
 });
 
 describe("getBoostArcOverlay", () => {
-  const boostedHeat = {
+  const heatHold = {
     current: 19,
-    targetLow: 22,
+    targetLow: 20,
     targetHigh: 24,
     minTemp: 16,
     maxTemp: 30,
@@ -415,11 +415,11 @@ describe("getBoostArcOverlay", () => {
   };
 
   it("returns null when boost is inactive", () => {
-    expect(getBoostArcOverlay(boostedHeat, "boost_heating", false)).toBeNull();
+    expect(getBoostArcOverlay(heatHold, "boost_heating", false)).toBeNull();
   });
 
-  it("extends heating from the original heat target to the boosted target", () => {
-    const overlay = getBoostArcOverlay(boostedHeat, "boost_heating", true);
+  it("extends heating from the live heat target by 2°C without moving the knob", () => {
+    const overlay = getBoostArcOverlay(heatHold, "boost_heating", true);
     expect(overlay?.kind).toBe("heat");
     expect(overlay?.originalTarget).toBe(20);
     expect(overlay?.boostedTarget).toBe(22);
@@ -429,9 +429,9 @@ describe("getBoostArcOverlay", () => {
     expect(overlay!.segment!.end).toBeGreaterThan(overlay!.segment!.start);
   });
 
-  it("clips the heating boost overlay once current is past the original target", () => {
+  it("clips the heating boost overlay once current is past the live heat target", () => {
     const overlay = getBoostArcOverlay(
-      { ...boostedHeat, current: 21 },
+      { ...heatHold, current: 21 },
       "boost_heating",
       true,
     );
@@ -441,29 +441,30 @@ describe("getBoostArcOverlay", () => {
 
   it("omits the heating overlay segment when current has reached the boost target", () => {
     const overlay = getBoostArcOverlay(
-      { ...boostedHeat, current: 23 },
+      { ...heatHold, current: 23 },
       "boost_heating",
       true,
     );
     expect(overlay?.originalTarget).toBe(20);
+    expect(overlay?.boostedTarget).toBe(22);
     expect(overlay?.segment).toBeNull();
   });
 
-  it("extends cooling from the boosted cool target back to the original cool target", () => {
+  it("extends cooling 2°C below the live cool target without moving the knob", () => {
     const overlay = getBoostArcOverlay(
       {
-        ...boostedHeat,
+        ...heatHold,
         current: 25,
-        targetLow: 19,
-        targetHigh: 21,
+        targetLow: 18,
+        targetHigh: 24,
       },
       "boost_cooling",
       true,
     );
     expect(overlay?.kind).toBe("cool");
-    expect(overlay?.originalTarget).toBe(23);
-    expect(overlay?.boostedTarget).toBe(21);
-    expect(overlay?.knobClimate.targetHigh).toBe(23);
+    expect(overlay?.originalTarget).toBe(24);
+    expect(overlay?.boostedTarget).toBe(22);
+    expect(overlay?.knobClimate.targetHigh).toBe(24);
     expect(overlay?.segment).not.toBeNull();
   });
 });

@@ -713,12 +713,13 @@ export function getBoostArcOverlay(
   const { minTemp, maxTemp, step, current } = climate;
 
   if (isHeatingState(operatingState)) {
-    const boostedTarget = climate.targetLow;
-    const originalTarget = Math.max(
-      minTemp,
-      roundToStep(boostedTarget - DEFAULT_BOOST_TEMPERATURE_OFFSET, step),
+    const originalTarget = climate.targetLow;
+    const boostedTarget = Math.min(
+      maxTemp,
+      climate.targetHigh,
+      roundToStep(originalTarget + DEFAULT_BOOST_TEMPERATURE_OFFSET, step),
     );
-    if (originalTarget >= boostedTarget) return null;
+    if (boostedTarget <= originalTarget) return null;
 
     let fromTemp = originalTarget;
     if (current !== null) {
@@ -733,18 +734,19 @@ export function getBoostArcOverlay(
       kind: "heat",
       originalTarget,
       boostedTarget,
-      knobClimate: { ...climate, targetLow: originalTarget },
+      knobClimate: climate,
       segment: boostOverlaySegment(climate, fromTemp, boostedTarget),
     };
   }
 
   if (isCoolingState(operatingState)) {
-    const boostedTarget = climate.targetHigh;
-    const originalTarget = Math.min(
-      maxTemp,
-      roundToStep(boostedTarget + DEFAULT_BOOST_TEMPERATURE_OFFSET, step),
+    const originalTarget = climate.targetHigh;
+    const boostedTarget = Math.max(
+      minTemp,
+      climate.targetLow,
+      roundToStep(originalTarget - DEFAULT_BOOST_TEMPERATURE_OFFSET, step),
     );
-    if (originalTarget <= boostedTarget) return null;
+    if (boostedTarget >= originalTarget) return null;
 
     let toTemp = originalTarget;
     if (current !== null) {
@@ -759,7 +761,7 @@ export function getBoostArcOverlay(
       kind: "cool",
       originalTarget,
       boostedTarget,
-      knobClimate: { ...climate, targetHigh: originalTarget },
+      knobClimate: climate,
       segment: boostOverlaySegment(climate, boostedTarget, toTemp),
     };
   }

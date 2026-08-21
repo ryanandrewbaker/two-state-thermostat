@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.2] - 2026-08-21
+
+### Fixed
+
+- Boost overlay now extends the live heat or cool setpoint by 2°C instead of moving the knob backward, which had shortened the arc.
+
 ## [0.4.1] - 2026-08-21
 
 ### Changed

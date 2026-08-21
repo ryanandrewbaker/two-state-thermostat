@@ -9,6 +9,7 @@ import {
   ARC_START_ANGLE,
   ARC_SWEEP,
   AUTO_FAN_OPTION_VALUE,
+  DEFAULT_BOOST_TEMPERATURE_OFFSET,
   DEFAULT_MAX_TEMP,
   DEFAULT_MIN_TEMP,
   DEFAULT_MINIMUM_TARGET_SEPARATION,
@@ -678,6 +679,92 @@ export interface ArcRemainingSegments {
   heatRemaining: ArcAngleSegment | null;
   coolBase: ArcAngleSegment | null;
   coolRemaining: ArcAngleSegment | null;
+}
+
+export interface BoostArcOverlay {
+  kind: "heat" | "cool";
+  originalTarget: number;
+  boostedTarget: number;
+  knobClimate: ClimateRange;
+  segment: ArcAngleSegment | null;
+}
+
+function boostOverlaySegment(
+  climate: ClimateRange,
+  fromTemp: number,
+  toTemp: number,
+): ArcAngleSegment | null {
+  if (toTemp - fromTemp < climate.step / 2) return null;
+
+  return {
+    start: tempToAngle(fromTemp, climate.minTemp, climate.maxTemp),
+    end: tempToAngle(toTemp, climate.minTemp, climate.maxTemp),
+  };
+}
+
+export function getBoostArcOverlay(
+  climate: ClimateRange,
+  operatingState: OperatingStateKey,
+  boostActive: boolean,
+): BoostArcOverlay | null {
+  if (!boostActive) return null;
+  if (climate.targetLow === null || climate.targetHigh === null) return null;
+
+  const { minTemp, maxTemp, step, current } = climate;
+
+  if (isHeatingState(operatingState)) {
+    const boostedTarget = climate.targetLow;
+    const originalTarget = Math.max(
+      minTemp,
+      roundToStep(boostedTarget - DEFAULT_BOOST_TEMPERATURE_OFFSET, step),
+    );
+    if (originalTarget >= boostedTarget) return null;
+
+    let fromTemp = originalTarget;
+    if (current !== null) {
+      if (current >= boostedTarget) {
+        fromTemp = boostedTarget;
+      } else if (current > originalTarget) {
+        fromTemp = current;
+      }
+    }
+
+    return {
+      kind: "heat",
+      originalTarget,
+      boostedTarget,
+      knobClimate: { ...climate, targetLow: originalTarget },
+      segment: boostOverlaySegment(climate, fromTemp, boostedTarget),
+    };
+  }
+
+  if (isCoolingState(operatingState)) {
+    const boostedTarget = climate.targetHigh;
+    const originalTarget = Math.min(
+      maxTemp,
+      roundToStep(boostedTarget + DEFAULT_BOOST_TEMPERATURE_OFFSET, step),
+    );
+    if (originalTarget <= boostedTarget) return null;
+
+    let toTemp = originalTarget;
+    if (current !== null) {
+      if (current <= boostedTarget) {
+        toTemp = boostedTarget;
+      } else if (current < originalTarget) {
+        toTemp = current;
+      }
+    }
+
+    return {
+      kind: "cool",
+      originalTarget,
+      boostedTarget,
+      knobClimate: { ...climate, targetHigh: originalTarget },
+      segment: boostOverlaySegment(climate, boostedTarget, toTemp),
+    };
+  }
+
+  return null;
 }
 
 export function getArcRemainingSegments(

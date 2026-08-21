@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.1] - 2026-08-21
+
+### Changed
+
+- While Boost is active, the heat or cool arc extends from the original setpoint to the boosted target without a draggable knob, so the temporary +2°C / −2°C margin is visible on the dial.
+
 ## [0.4.0] - 2026-08-21
 
 ### Changed

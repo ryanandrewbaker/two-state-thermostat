@@ -264,6 +264,13 @@ export const dialStyles = css`
     stroke-width: 16;
   }
 
+  .arc-heat.boost {
+    stroke-width: 16;
+    opacity: 1;
+    stroke-dasharray: 5 4;
+    stroke-linecap: round;
+  }
+
   .arc-cool {
     fill: none;
     stroke: var(--cool-color);
@@ -291,6 +298,13 @@ export const dialStyles = css`
   .arc-cool.remaining.strong {
     opacity: 1;
     stroke-width: 16;
+  }
+
+  .arc-cool.boost {
+    stroke-width: 16;
+    opacity: 1;
+    stroke-dasharray: 5 4;
+    stroke-linecap: round;
   }
 
   .subdued .arc-heat,
@@ -338,6 +352,18 @@ export const dialStyles = css`
   .current-dot {
     fill: #ffffff;
     filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.45));
+  }
+
+  .boost-cap {
+    pointer-events: none;
+  }
+
+  .boost-cap.heat {
+    fill: var(--heat-color);
+  }
+
+  .boost-cap.cool {
+    fill: var(--cool-color);
   }
 
   .center {

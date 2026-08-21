@@ -6,6 +6,7 @@ import {
   describeArcState,
   getArcGeometry,
   getArcRemainingSegments,
+  getBoostArcOverlay,
   getStateLabelTone,
   targetFromAngle,
 } from "../state";
@@ -114,7 +115,16 @@ export class ClimateDial extends LitElement {
   }
 
   private get geometry() {
-    return getArcGeometry(this.displayClimate);
+    const overlay = this.boostOverlay;
+    return getArcGeometry(overlay?.knobClimate ?? this.displayClimate);
+  }
+
+  private get boostOverlay() {
+    return getBoostArcOverlay(
+      this.displayClimate,
+      this.viewState.operatingState,
+      this.viewState.boost.active,
+    );
   }
 
   private formatTemp(value: number | null): string {
@@ -132,6 +142,7 @@ export class ClimateDial extends LitElement {
   render() {
     const { climate, operatingLabel, operatingState } = this.viewState;
     const displayClimate = this.displayClimate;
+    const overlay = this.boostOverlay;
     const arc = this.arcState;
     const geo = this.geometry;
     const segments = getArcRemainingSegments(geo, operatingState, this._dragTarget);
@@ -141,12 +152,21 @@ export class ClimateDial extends LitElement {
     const r = 78;
     const trackPath = describeArc(cx, cy, r, geo.startAngle, geo.endAngle);
     const temp = this.splitTemp(climate.current);
+    const targetLow = displayClimate.targetLow;
+    const targetHigh = displayClimate.targetHigh;
+    const knobLow = overlay?.kind === "heat" ? overlay.originalTarget : targetLow;
+    const knobHigh = overlay?.kind === "cool" ? overlay.originalTarget : targetHigh;
     const lowKnob = geo.lowAngle !== null ? polar(cx, cy, r, geo.lowAngle) : null;
     const highKnob = geo.highAngle !== null ? polar(cx, cy, r, geo.highAngle) : null;
     const currentDot =
       geo.currentAngle !== null ? polar(cx, cy, r, geo.currentAngle) : null;
-    const targetLow = displayClimate.targetLow;
-    const targetHigh = displayClimate.targetHigh;
+    const boostCapAngle =
+      overlay?.segment == null
+        ? null
+        : overlay.kind === "heat"
+          ? overlay.segment.end
+          : overlay.segment.start;
+    const boostCap = boostCapAngle === null ? null : polar(cx, cy, r, boostCapAngle);
 
     return html`
       <div class="dial-wrap ${arc.subdued ? "subdued" : ""}">
@@ -172,8 +192,29 @@ export class ClimateDial extends LitElement {
             "remaining",
             arc,
           )}
-          ${this._renderKnob("low", lowKnob, targetLow, "Heating target")}
-          ${this._renderKnob("high", highKnob, targetHigh, "Cooling target")}
+          ${this._renderArcSegment(
+            cx,
+            cy,
+            r,
+            overlay?.segment ?? null,
+            overlay?.kind ?? "heat",
+            "boost",
+            arc,
+          )}
+          ${this._renderKnob("low", lowKnob, knobLow, "Heating target")}
+          ${this._renderKnob("high", highKnob, knobHigh, "Cooling target")}
+          ${
+            boostCap
+              ? svg`
+                  <circle
+                    class="boost-cap ${overlay?.kind === "cool" ? "cool" : "heat"}"
+                    cx=${boostCap.x}
+                    cy=${boostCap.y}
+                    r="3.5"
+                  ></circle>
+                `
+              : nothing
+          }
           ${
             currentDot
               ? svg`
@@ -223,7 +264,7 @@ export class ClimateDial extends LitElement {
     r: number,
     segment: ArcAngleSegment | null,
     kind: "heat" | "cool",
-    layer: "base" | "remaining",
+    layer: "base" | "remaining" | "boost",
     arc: ReturnType<typeof describeArcState>,
   ) {
     if (!segment) return null;
@@ -231,7 +272,9 @@ export class ClimateDial extends LitElement {
     const path = describeArc(cx, cy, r, segment.start, segment.end);
     const warm = kind === "heat";
     const active = warm ? arc.warmActive : arc.coolActive;
-    const strong = layer === "remaining" && (warm ? arc.warmStrong : arc.coolStrong);
+    const strong =
+      (layer === "remaining" || layer === "boost") &&
+      (warm ? arc.warmStrong : arc.coolStrong);
 
     return svg`<path
       class="arc-${kind} ${layer} ${active ? "active" : ""} ${strong ? "strong" : ""}"

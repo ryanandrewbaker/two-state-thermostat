@@ -200,6 +200,7 @@ On the card:
 - Idle: Boost pill starts Boost.
 - Active: remaining time (click to extend / restart the 30-minute timer) and a cancel control (ends Boost immediately).
 - While Boost is active, fan Auto/speed and the heat/cool knobs are locked so they cannot undermine the Boost override.
+- The active heat or cool arc also extends from the original setpoint to the boosted target (dashed, no knob) so the temporary margin is visible.
 
 The Home Assistant package owns:
 

@@ -8,6 +8,7 @@ import {
   formatTimerRemaining,
   getArcGeometry,
   getArcRemainingSegments,
+  getBoostArcOverlay,
   getDegradedOperatingLabel,
   getFanState,
   getOperatingLabel,
@@ -398,6 +399,72 @@ describe("arc geometry", () => {
     expect(dragSegments.coolRemaining).not.toBeNull();
     expect(dragSegments.coolRemaining!.start).toBe(geometry.highAngle);
     expect(dragSegments.coolRemaining!.end).toBe(geometry.currentAngle);
+  });
+});
+
+describe("getBoostArcOverlay", () => {
+  const boostedHeat = {
+    current: 19,
+    targetLow: 22,
+    targetHigh: 24,
+    minTemp: 16,
+    maxTemp: 30,
+    step: 0.5,
+    hvacMode: "heat_cool",
+    isOn: true,
+  };
+
+  it("returns null when boost is inactive", () => {
+    expect(getBoostArcOverlay(boostedHeat, "boost_heating", false)).toBeNull();
+  });
+
+  it("extends heating from the original heat target to the boosted target", () => {
+    const overlay = getBoostArcOverlay(boostedHeat, "boost_heating", true);
+    expect(overlay?.kind).toBe("heat");
+    expect(overlay?.originalTarget).toBe(20);
+    expect(overlay?.boostedTarget).toBe(22);
+    expect(overlay?.knobClimate.targetLow).toBe(20);
+    expect(overlay?.knobClimate.targetHigh).toBe(24);
+    expect(overlay?.segment).not.toBeNull();
+    expect(overlay!.segment!.end).toBeGreaterThan(overlay!.segment!.start);
+  });
+
+  it("clips the heating boost overlay once current is past the original target", () => {
+    const overlay = getBoostArcOverlay(
+      { ...boostedHeat, current: 21 },
+      "boost_heating",
+      true,
+    );
+    expect(overlay?.segment?.start).toBe(tempToAngle(21, 16, 30));
+    expect(overlay?.segment?.end).toBe(tempToAngle(22, 16, 30));
+  });
+
+  it("omits the heating overlay segment when current has reached the boost target", () => {
+    const overlay = getBoostArcOverlay(
+      { ...boostedHeat, current: 23 },
+      "boost_heating",
+      true,
+    );
+    expect(overlay?.originalTarget).toBe(20);
+    expect(overlay?.segment).toBeNull();
+  });
+
+  it("extends cooling from the boosted cool target back to the original cool target", () => {
+    const overlay = getBoostArcOverlay(
+      {
+        ...boostedHeat,
+        current: 25,
+        targetLow: 19,
+        targetHigh: 21,
+      },
+      "boost_cooling",
+      true,
+    );
+    expect(overlay?.kind).toBe("cool");
+    expect(overlay?.originalTarget).toBe(23);
+    expect(overlay?.boostedTarget).toBe(21);
+    expect(overlay?.knobClimate.targetHigh).toBe(23);
+    expect(overlay?.segment).not.toBeNull();
   });
 });
 

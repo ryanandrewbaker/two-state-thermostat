@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.3] - 2026-08-21
+
+### Fixed
+
+- Boost overlay now starts at the heat or cool setpoint knob, not at the current-temperature marker.
+
 ## [0.4.2] - 2026-08-21
 
 ### Fixed

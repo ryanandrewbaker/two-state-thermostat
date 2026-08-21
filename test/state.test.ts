@@ -425,21 +425,21 @@ describe("getBoostArcOverlay", () => {
     expect(overlay?.boostedTarget).toBe(22);
     expect(overlay?.knobClimate.targetLow).toBe(20);
     expect(overlay?.knobClimate.targetHigh).toBe(24);
-    expect(overlay?.segment).not.toBeNull();
-    expect(overlay!.segment!.end).toBeGreaterThan(overlay!.segment!.start);
+    expect(overlay?.segment?.start).toBe(tempToAngle(20, 16, 30));
+    expect(overlay?.segment?.end).toBe(tempToAngle(22, 16, 30));
   });
 
-  it("clips the heating boost overlay once current is past the live heat target", () => {
+  it("keeps the heating boost overlay anchored to the setpoint when current is past it", () => {
     const overlay = getBoostArcOverlay(
       { ...heatHold, current: 21 },
       "boost_heating",
       true,
     );
-    expect(overlay?.segment?.start).toBe(tempToAngle(21, 16, 30));
+    expect(overlay?.segment?.start).toBe(tempToAngle(20, 16, 30));
     expect(overlay?.segment?.end).toBe(tempToAngle(22, 16, 30));
   });
 
-  it("omits the heating overlay segment when current has reached the boost target", () => {
+  it("still draws the heating boost margin when current has reached the boost target", () => {
     const overlay = getBoostArcOverlay(
       { ...heatHold, current: 23 },
       "boost_heating",
@@ -447,7 +447,8 @@ describe("getBoostArcOverlay", () => {
     );
     expect(overlay?.originalTarget).toBe(20);
     expect(overlay?.boostedTarget).toBe(22);
-    expect(overlay?.segment).toBeNull();
+    expect(overlay?.segment?.start).toBe(tempToAngle(20, 16, 30));
+    expect(overlay?.segment?.end).toBe(tempToAngle(22, 16, 30));
   });
 
   it("extends cooling 2°C below the live cool target without moving the knob", () => {

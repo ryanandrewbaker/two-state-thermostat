@@ -3,13 +3,13 @@ import type { FanOption, OperatingStateKey } from "./types";
 export const CARD_TYPE = "two-state-thermostat";
 export const CARD_ELEMENT = "two-state-thermostat";
 export const CARD_NAME = "Two State Thermostat";
-export const CARD_VERSION = "0.3.8";
+export const CARD_VERSION = "0.4.0";
 export const DOCUMENTATION_URL =
   "https://github.com/ryanandrewbaker/two-state-thermostat";
 
 export const DEFAULT_POWER_ON_MODE = "heat_cool";
 export const DEFAULT_TARGET_STEP = 0.5;
-export const DEFAULT_MINIMUM_TARGET_SEPARATION = 1;
+export const DEFAULT_MINIMUM_TARGET_SEPARATION = 2;
 export const DEFAULT_MIN_TEMP = 5;
 export const DEFAULT_MAX_TEMP = 35;
 

@@ -10,12 +10,12 @@ A Home Assistant Lovelace card for dual-range (heat/cool) climate control with B
 - Current control temperature with responsive SVG dial
 - Operating state from a dedicated sensor (Off, Idle, Boost/Maintain Heating/Cooling)
 - Power button for the virtual climate entity
-- Boost button with optional countdown from a timer entity
+- Boost button with optional countdown from a timer entity; while Boost is active, the countdown extends Boost and a cancel control ends it
 - Automatic or manual fan control via Home Assistant helpers
 - Theme-aware styling using Home Assistant CSS variables
 - Graphical Lovelace card editor
 
-This card is **frontend only**. Thermostat logic, timers, hysteresis, and fan staging remain in your Home Assistant configuration.
+This card is **frontend only**. Thermostat logic, timers, hysteresis, target-gap enforcement across all clients, and fan staging remain in your Home Assistant configuration.
 
 ## Installation
 
@@ -122,14 +122,14 @@ When your package exposes the attributes below on the virtual climate entity, us
 | `fan_override_entity`        | Manual fan override select                                                               |
 | `effective_fan_entity`       | Effective fan mode sensor                                                                |
 | `recommended_fan_entity`     | Automatic fan recommendation sensor                                                      |
-| `boost_script_entity`        | Boost script                                                                             |
-| `boost_cancel_script_entity` | Boost cancel script                                                                      |
-| `boost_active_entity`        | Boost active boolean                                                                     |
-| `boost_timer_entity`         | Boost countdown timer                                                                    |
+| `boost_script_entity`        | Boost script (start or extend; package must not replace the original snapshot on re-trigger) |
+| `boost_cancel_script_entity` | Boost cancel script (restore snapshot immediately)                                           |
+| `boost_active_entity`        | Boost active boolean                                                                         |
+| `boost_timer_entity`         | Boost countdown timer                                                                        |
 | `power_on_mode`              | HVAC mode used when powering on (default: `heat_cool`)                                   |
 | `fan_options`                | Fan speed options (list of strings or `{value, label}` objects)                          |
 | `target_step`                | Target temperature step (default: `0.5`)                                                 |
-| `minimum_target_separation`  | Minimum gap between heating and cooling targets (default: `1`)                           |
+| `minimum_target_separation`  | Minimum gap between heating and cooling targets (default: `2`). This is a **minimum**, not a fixed band. |
 
 ### Example package attributes
 
@@ -155,8 +155,62 @@ fan_options:
   - medium
   - high
 target_step: 0.5
-minimum_target_separation: 1
+minimum_target_separation: 2
 ```
+
+### Minimum heat/cool gap
+
+`minimum_target_separation` is the smallest allowed difference between the cooling and heating targets. Wider bands are valid and must be left alone.
+
+```text
+Heat 19 / Cool 24   ✓  (5°C gap, unchanged)
+Heat 20 / Cool 21   ✗  (invalid when the minimum is 2°C)
+```
+
+Resolution order:
+
+1. Explicit Lovelace card configuration
+2. Attribute on the climate/controller entity
+3. Default of `2`
+
+Existing dashboards that set `minimum_target_separation: 1` keep a 1°C gap. Only configurations that rely on the default change to 2°C.
+
+When the user changes one target, that value is authoritative. The opposite target moves only if the minimum gap would otherwise be violated:
+
+```text
+Heat 20 / Cool 23, raise Heat to 22  →  Heat 22 / Cool 24
+Heat 20 / Cool 23, lower Cool to 21  →  Heat 19 / Cool 21
+Heat 18 / Cool 24, raise Heat to 20  →  Heat 20 / Cool 24
+```
+
+The Lovelace card enforces this for dial adjustments. The Home Assistant package should enforce the same invariant on every target update (card, another dashboard, automations, Developer Tools) so the gap cannot be bypassed:
+
+```text
+cool_target >= heat_target + minimum_target_separation
+```
+
+Do not add a second deadband, hysteresis, or Boost-gap setting. `minimum_target_separation` is the single heat/cool band protection.
+
+### Boost
+
+Boost temporarily shifts the currently active heating or cooling target by 2°C, forces the controller-managed fan to High, and restores the previous thermostat and fan settings after 30 minutes or when cancelled.
+
+On the card:
+
+- Idle: Boost pill starts Boost.
+- Active: remaining time (click to extend / restart the 30-minute timer) and a cancel control (ends Boost immediately).
+- While Boost is active, fan Auto/speed and the heat/cool knobs are locked so they cannot undermine the Boost override.
+
+The Home Assistant package owns:
+
+- Boost snapshot (previous heating target, cooling target, fan automatic/manual state, and manual fan selection)
+- 30-minute timer
+- Restore on expiry or cancel (use the snapshot, do not reverse the Boost mathematically)
+- Heating vs cooling direction from controller intent (`maintain_heating` / `boost_heating` → heating Boost; `maintain_cooling` / `boost_cooling` → cooling Boost; idle: last/desired HVAC direction)
+- High fan override through controller-managed helpers (never `climate.set_fan_mode` from the card)
+- Target-separation enforcement while applying Boost
+
+Re-triggering Boost (clicking remaining time) must keep the original snapshot and the already-boosted targets, force High fan, and restart the timer. Do not compound the 2°C offset.
 
 ### Resolution order
 

@@ -263,7 +263,7 @@ export class TwoStageThermostatEditor extends LitElement {
             </div>
 
             <div class="row">
-              <label for="minimum_target_separation">Minimum target separation</label>
+              <label for="minimum_target_separation">Minimum heat/cool gap</label>
               <input
                 id="minimum_target_separation"
                 type="number"
@@ -279,6 +279,10 @@ export class TwoStageThermostatEditor extends LitElement {
                     ),
                   })}
               />
+              <p class="hint">
+                Minimum allowed difference between heating and cooling targets. Default:
+                2°C.
+              </p>
             </div>
 
             ${this._checkbox("show_countdown", "Show boost countdown", true)}

@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-08-21
+
+### Changed
+
+- Default minimum heat/cool gap is now 2°C (`minimum_target_separation`). Explicit YAML values, including `1`, are unchanged.
+- Raising the heating target now pushes cooling up only when needed, instead of recentring both setpoints. Lowering cooling pushes heating down the same way.
+- While Boost is active, the Boost pill becomes a remaining-time control (click to extend) and a cancel control. Fan Auto/speed and dial knobs are locked until Boost ends.
+- Editor label is now **Minimum heat/cool gap**, with helper text in Advanced configuration.
+
+### Package contract
+
+Boost remains owned by the Home Assistant package: snapshot, 30-minute timer, High fan override, heating/cooling direction, and restore. The card only calls the existing Boost and Cancel scripts.
+
 ## [0.3.8] - 2026-07-29
 
 ### Changed

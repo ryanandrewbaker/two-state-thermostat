@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   assertAllowedService,
   buildBoostCall,
+  buildBoostCancelCall,
   buildFanAutoOnCall,
   buildFanOverrideCall,
   buildPowerOffCall,
@@ -83,11 +84,16 @@ describe("service payloads", () => {
     });
   });
 
-  it("builds boost calls", () => {
+  it("builds boost start/extend and cancel calls", () => {
     expect(buildBoostCall(config)).toEqual({
       domain: "script",
       service: "turn_on",
       data: { entity_id: "script.family_room_climate_boost" },
+    });
+    expect(buildBoostCancelCall(config)).toEqual({
+      domain: "script",
+      service: "turn_on",
+      data: { entity_id: "script.family_room_climate_cancel_boost" },
     });
   });
 });

@@ -84,12 +84,58 @@ export function parseNumber(value: unknown): number | null {
   return null;
 }
 
-export function roundToStep(value: number, step: number): number {
-  const precision = step.toString().includes(".")
+function stepPrecision(step: number): number {
+  return step.toString().includes(".")
     ? (step.toString().split(".")[1]?.length ?? 0)
     : 0;
+}
+
+export function roundToStep(value: number, step: number): number {
+  const precision = stepPrecision(step);
   const rounded = Math.round(value / step) * step;
   return Number(rounded.toFixed(precision));
+}
+
+function ceilToStep(value: number, step: number): number {
+  const precision = stepPrecision(step);
+  const rounded = Math.ceil(value / step - Number.EPSILON) * step;
+  return Number(rounded.toFixed(precision));
+}
+
+function floorToStep(value: number, step: number): number {
+  const precision = stepPrecision(step);
+  const rounded = Math.floor(value / step + Number.EPSILON) * step;
+  return Number(rounded.toFixed(precision));
+}
+
+function clampNumber(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(value, max));
+}
+
+function fitTargetPair(
+  low: number,
+  high: number,
+  minTemp: number,
+  maxTemp: number,
+  step: number,
+  minimumSeparation: number,
+): TargetAdjustment {
+  let targetLow = clampNumber(low, minTemp, maxTemp);
+  let targetHigh = clampNumber(high, minTemp, maxTemp);
+
+  if (targetHigh - targetLow < minimumSeparation) {
+    targetHigh = ceilToStep(targetLow + minimumSeparation, step);
+    if (targetHigh > maxTemp) {
+      targetHigh = roundToStep(maxTemp, step);
+      targetLow = floorToStep(targetHigh - minimumSeparation, step);
+      targetLow = Math.max(minTemp, targetLow);
+    }
+  }
+
+  return {
+    targetLow: clampNumber(targetLow, minTemp, maxTemp),
+    targetHigh: clampNumber(targetHigh, minTemp, maxTemp),
+  };
 }
 
 export function normalizeOperatingStateFromHvacAction(
@@ -311,22 +357,68 @@ export function clampTargetRange(
   step: number,
   minimumSeparation: number,
 ): TargetAdjustment {
-  let targetLow = roundToStep(low, step);
-  let targetHigh = roundToStep(high, step);
+  return fitTargetPair(
+    roundToStep(low, step),
+    roundToStep(high, step),
+    minTemp,
+    maxTemp,
+    step,
+    minimumSeparation,
+  );
+}
 
-  targetLow = Math.max(minTemp, Math.min(targetLow, maxTemp));
-  targetHigh = Math.max(minTemp, Math.min(targetHigh, maxTemp));
+export function applyAuthoritativeTarget(
+  current: ClimateRange,
+  which: "low" | "high",
+  requested: number,
+  minimumSeparation: number,
+): TargetAdjustment | null {
+  if (current.targetLow === null || current.targetHigh === null) return null;
 
-  if (targetHigh - targetLow < minimumSeparation) {
-    const midpoint = (targetLow + targetHigh) / 2;
-    targetLow = roundToStep(midpoint - minimumSeparation / 2, step);
-    targetHigh = roundToStep(midpoint + minimumSeparation / 2, step);
+  const { minTemp, maxTemp, step } = current;
+  const requestedRounded = clampNumber(roundToStep(requested, step), minTemp, maxTemp);
+
+  if (which === "low") {
+    let targetLow = requestedRounded;
+    const existingHigh = roundToStep(current.targetHigh, step);
+    const minHigh = ceilToStep(targetLow + minimumSeparation, step);
+    let targetHigh = Math.max(existingHigh, minHigh);
+
+    if (targetHigh > maxTemp) {
+      targetHigh = roundToStep(maxTemp, step);
+      targetLow = floorToStep(targetHigh - minimumSeparation, step);
+      targetLow = Math.max(minTemp, targetLow);
+    }
+
+    return fitTargetPair(
+      targetLow,
+      targetHigh,
+      minTemp,
+      maxTemp,
+      step,
+      minimumSeparation,
+    );
   }
 
-  targetLow = Math.max(minTemp, Math.min(targetLow, maxTemp - minimumSeparation));
-  targetHigh = Math.min(maxTemp, Math.max(targetHigh, targetLow + minimumSeparation));
+  let targetHigh = requestedRounded;
+  const existingLow = roundToStep(current.targetLow, step);
+  const maxLow = floorToStep(targetHigh - minimumSeparation, step);
+  let targetLow = Math.min(existingLow, maxLow);
 
-  return { targetLow, targetHigh };
+  if (targetLow < minTemp) {
+    targetLow = roundToStep(minTemp, step);
+    targetHigh = ceilToStep(targetLow + minimumSeparation, step);
+    targetHigh = Math.min(maxTemp, targetHigh);
+  }
+
+  return fitTargetPair(
+    targetLow,
+    targetHigh,
+    minTemp,
+    maxTemp,
+    step,
+    minimumSeparation,
+  );
 }
 
 export function adjustTarget(
@@ -337,17 +429,10 @@ export function adjustTarget(
 ): TargetAdjustment | null {
   if (current.targetLow === null || current.targetHigh === null) return null;
 
-  const low = which === "low" ? current.targetLow + delta : current.targetLow;
-  const high = which === "high" ? current.targetHigh + delta : current.targetHigh;
+  const requested =
+    which === "low" ? current.targetLow + delta : current.targetHigh + delta;
 
-  return clampTargetRange(
-    low,
-    high,
-    current.minTemp,
-    current.maxTemp,
-    current.step,
-    minimumSeparation,
-  );
+  return applyAuthoritativeTarget(current, which, requested, minimumSeparation);
 }
 
 export function getFanState(
@@ -379,6 +464,8 @@ export function getFanState(
     };
   }
 
+  const boostActive = getBoostState(hass, config).active;
+
   if (hasPreferredModel) {
     const isAuto = fanAuto?.state === "on";
     const manualValue = fanOverride?.state ?? null;
@@ -405,7 +492,7 @@ export function getFanState(
       recommendedValue,
       displayLabel,
       sliderIndex: sliderIndex === -1 ? 0 : sliderIndex,
-      readOnly: isAuto,
+      readOnly: isAuto || boostActive,
       usesSimplifiedModel: false,
     };
   }
@@ -435,7 +522,7 @@ export function getFanState(
     recommendedValue: recommended?.state ?? null,
     displayLabel,
     sliderIndex: sliderIndex === -1 ? 0 : sliderIndex,
-    readOnly: isAuto,
+    readOnly: isAuto || boostActive,
     usesSimplifiedModel: true,
   };
 }
@@ -535,27 +622,8 @@ export function targetFromAngle(
   if (climate.targetLow === null || climate.targetHigh === null) return null;
 
   const rawTemp = angleToTemp(angleDeg, climate.minTemp, climate.maxTemp);
-  const stepped = roundToStep(rawTemp, climate.step);
-
-  if (which === "low") {
-    return clampTargetRange(
-      stepped,
-      climate.targetHigh,
-      climate.minTemp,
-      climate.maxTemp,
-      climate.step,
-      minimumSeparation,
-    );
-  }
-
-  return clampTargetRange(
-    climate.targetLow,
-    stepped,
-    climate.minTemp,
-    climate.maxTemp,
-    climate.step,
-    minimumSeparation,
-  );
+  const requested = roundToStep(rawTemp, climate.step);
+  return applyAuthoritativeTarget(climate, which, requested, minimumSeparation);
 }
 
 export function getArcGeometry(climate: ClimateRange): ArcGeometry {

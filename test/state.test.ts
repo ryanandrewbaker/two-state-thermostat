@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { resolveCardConfig } from "../src/config";
 import {
   adjustTarget,
+  applyAuthoritativeTarget,
   buildCardViewState,
   clampTargetRange,
   formatTimerRemaining,
@@ -15,9 +16,15 @@ import {
   normalizeOperatingStateFromHvacAction,
   roundToStep,
   targetFromAngle,
+  tempToAngle,
   validateConfig,
 } from "../src/state";
-import type { HassEntity, HomeAssistant, RawCardConfig } from "../src/types";
+import type {
+  ClimateRange,
+  HassEntity,
+  HomeAssistant,
+  RawCardConfig,
+} from "../src/types";
 
 function makeClimate(overrides: Partial<HassEntity> = {}): HassEntity {
   return {
@@ -95,30 +102,104 @@ describe("formatTimerRemaining", () => {
 });
 
 describe("target constraints", () => {
+  const baseRange = (overrides: Partial<ClimateRange> = {}): ClimateRange => ({
+    current: 23,
+    targetLow: 20,
+    targetHigh: 23,
+    minTemp: 16,
+    maxTemp: 30,
+    step: 0.5,
+    hvacMode: "heat_cool",
+    isOn: true,
+    ...overrides,
+  });
+
   it("rounds to step", () => {
     expect(roundToStep(22.24, 0.5)).toBe(22);
     expect(roundToStep(22.26, 0.5)).toBe(22.5);
   });
 
-  it("enforces minimum separation", () => {
+  it("enforces minimum separation without recentring", () => {
     const result = clampTargetRange(20, 20.2, 16, 30, 0.5, 1);
+    expect(result.targetLow).toBe(20);
+    expect(result.targetHigh).toBe(21);
     expect(result.targetHigh - result.targetLow).toBeGreaterThanOrEqual(1);
   });
 
+  it("raises heat and pushes cool only when the gap is violated", () => {
+    const close = adjustTarget(baseRange(), "low", 2, 2);
+    expect(close).toEqual({ targetLow: 22, targetHigh: 24 });
+
+    const wide = adjustTarget(
+      baseRange({ targetLow: 18, targetHigh: 24 }),
+      "low",
+      2,
+      2,
+    );
+    expect(wide).toEqual({ targetLow: 20, targetHigh: 24 });
+  });
+
+  it("lowers cool and pushes heat only when the gap is violated", () => {
+    const close = adjustTarget(baseRange(), "high", -2, 2);
+    expect(close).toEqual({ targetLow: 19, targetHigh: 21 });
+
+    const wide = adjustTarget(
+      baseRange({ targetLow: 18, targetHigh: 24 }),
+      "high",
+      -2,
+      2,
+    );
+    expect(wide).toEqual({ targetLow: 18, targetHigh: 22 });
+  });
+
+  it("does not recentre both targets around the midpoint", () => {
+    const result = applyAuthoritativeTarget(baseRange(), "low", 22, 2);
+    expect(result).toEqual({ targetLow: 22, targetHigh: 24 });
+    expect(result).not.toEqual({ targetLow: 21.5, targetHigh: 23.5 });
+  });
+
+  it("rounds requested values to the configured step", () => {
+    const halfStep = applyAuthoritativeTarget(
+      baseRange({ step: 0.5 }),
+      "low",
+      21.24,
+      2,
+    );
+    expect(halfStep).toEqual({ targetLow: 21, targetHigh: 23 });
+
+    const wholeStep = applyAuthoritativeTarget(baseRange({ step: 1 }), "high", 21.4, 2);
+    expect(wholeStep).toEqual({ targetLow: 19, targetHigh: 21 });
+  });
+
+  it("pins to climate bounds when the requested heat cannot keep a valid cool target", () => {
+    const result = applyAuthoritativeTarget(
+      baseRange({ minTemp: 5, maxTemp: 30, targetLow: 20, targetHigh: 23 }),
+      "low",
+      29,
+      2,
+    );
+    expect(result).toEqual({ targetLow: 28, targetHigh: 30 });
+  });
+
+  it("pins to climate bounds when the requested cool cannot keep a valid heat target", () => {
+    const result = applyAuthoritativeTarget(
+      baseRange({ minTemp: 5, maxTemp: 30, targetLow: 20, targetHigh: 23 }),
+      "high",
+      6,
+      2,
+    );
+    expect(result).toEqual({ targetLow: 5, targetHigh: 7 });
+  });
+
   it("adjusts low target without crossing high", () => {
-    const climate = {
-      current: 23,
+    const climate = baseRange({
       targetLow: 22,
       targetHigh: 27.5,
       minTemp: 16,
-      maxTemp: 30,
-      step: 0.5,
-      hvacMode: "heat_cool",
-      isOn: true,
-    };
+    });
     const adjusted = adjustTarget(climate, "low", 0.5, 1);
     expect(adjusted?.targetLow).toBe(22.5);
-    expect(adjusted!.targetHigh).toBeGreaterThan(adjusted!.targetLow);
+    expect(adjusted!.targetHigh).toBe(27.5);
   });
 });
 
@@ -155,6 +236,46 @@ describe("fan state", () => {
     expect(fan.isAuto).toBe(true);
     expect(fan.readOnly).toBe(true);
     expect(fan.displayLabel).toBe("Auto · Medium");
+  });
+
+  it("locks manual fan controls while boost is active", () => {
+    const hass = makeHass({
+      "input_boolean.fan_auto": {
+        entity_id: "input_boolean.fan_auto",
+        state: "off",
+        attributes: {},
+      },
+      "input_select.fan_override": {
+        entity_id: "input_select.fan_override",
+        state: "low",
+        attributes: { options: ["quiet", "low", "medium", "high"] },
+      },
+      "sensor.effective_fan": {
+        entity_id: "sensor.effective_fan",
+        state: "high",
+        attributes: {},
+      },
+      "input_boolean.boost": {
+        entity_id: "input_boolean.boost",
+        state: "on",
+        attributes: {},
+      },
+    });
+
+    const fan = getFanState(
+      hass,
+      resolveCardConfig(hass, {
+        ...baseConfig,
+        fan_auto_entity: "input_boolean.fan_auto",
+        fan_override_entity: "input_select.fan_override",
+        effective_fan_entity: "sensor.effective_fan",
+        boost_active_entity: "input_boolean.boost",
+      }),
+    );
+
+    expect(fan.isAuto).toBe(false);
+    expect(fan.readOnly).toBe(true);
+    expect(fan.displayLabel).toBe("Manual · Low");
   });
 
   it("omits fan controls when not configured", () => {
@@ -194,9 +315,9 @@ describe("arc geometry", () => {
       isOn: true,
     };
 
-    const adjusted = targetFromAngle(180, "low", climate, 1);
-    expect(adjusted?.targetLow).toBeGreaterThanOrEqual(climate.minTemp);
-    expect(adjusted!.targetHigh - adjusted!.targetLow).toBeGreaterThanOrEqual(1);
+    const angle = tempToAngle(24, climate.minTemp, climate.maxTemp);
+    const adjusted = targetFromAngle(angle, "low", climate, 2);
+    expect(adjusted).toEqual({ targetLow: 24, targetHigh: 27.5 });
   });
 
   it("splits heating arc into base and remaining segments", () => {

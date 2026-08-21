@@ -1,13 +1,13 @@
 import { LitElement, css, html, nothing, svg } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 import {
+  adjustTarget,
   clampAngleToArc,
   describeArcState,
   getArcGeometry,
   getArcRemainingSegments,
   getStateLabelTone,
   targetFromAngle,
-  tempToAngle,
 } from "../state";
 import { dialStyles } from "../styles";
 import type { CardViewState, ClimateRange, TargetAdjustment } from "../types";
@@ -45,7 +45,7 @@ function pointerAngle(svg: SVGSVGElement, clientX: number, clientY: number): num
 @customElement("climate-dial")
 export class ClimateDial extends LitElement {
   @property({ attribute: false }) viewState!: CardViewState;
-  @property({ type: Number }) minimumTargetSeparation = 1;
+  @property({ type: Number }) minimumTargetSeparation = 2;
   @property({ type: Boolean }) disabled = false;
 
   @state() private _dragTarget: "low" | "high" | null = null;
@@ -295,16 +295,7 @@ export class ClimateDial extends LitElement {
     if (delta === null) return;
 
     event.preventDefault();
-    const angle =
-      which === "low"
-        ? tempToAngle(climate.targetLow + delta, climate.minTemp, climate.maxTemp)
-        : tempToAngle(climate.targetHigh + delta, climate.minTemp, climate.maxTemp);
-    const adjusted = targetFromAngle(
-      angle,
-      which,
-      climate,
-      this.minimumTargetSeparation,
-    );
+    const adjusted = adjustTarget(climate, which, delta, this.minimumTargetSeparation);
     if (!adjusted) return;
 
     this._commitTarget(adjusted);

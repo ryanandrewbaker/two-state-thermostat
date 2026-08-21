@@ -109,7 +109,7 @@ export class TwoStageThermostatCard extends LitElement {
           <div class="dial-section">
             <climate-dial
               .viewState=${view}
-              .disabled=${disabled}
+              .disabled=${disabled || view.boost.active}
               .minimumTargetSeparation=${getMinimumTargetSeparation(resolved)}
               @target-change=${this._handleTargetChange}
             ></climate-dial>
@@ -150,7 +150,7 @@ export class TwoStageThermostatCard extends LitElement {
                             : "Enable automatic fan"
                         }"
                         aria-pressed=${view.fan.isAuto ? "true" : "false"}
-                        ?disabled=${disabled}
+                        ?disabled=${disabled || view.boost.active}
                         @click=${this._toggleFanAuto}
                       >
                         Auto
@@ -209,6 +209,7 @@ export class TwoStageThermostatCard extends LitElement {
 
   private async _handleTargetChange(event: CustomEvent<TargetAdjustment>) {
     if (!this.hass || !event.detail) return;
+    if (buildCardViewState(this.hass, this._config).boost.active) return;
     await this._withPending(() =>
       setTemperature(this.hass!, this._resolvedConfig(), event.detail),
     );
@@ -228,11 +229,13 @@ export class TwoStageThermostatCard extends LitElement {
     if (!this.hass) return;
     const resolved = this._resolvedConfig();
     const view = buildCardViewState(this.hass, this._config);
+    if (view.boost.active) return;
     await this._withPending(() => setFanAuto(this.hass!, resolved, !view.fan.isAuto));
   }
 
   private async _handleFanSelect(event: CustomEvent<{ value: string }>) {
     if (!this.hass || !event.detail?.value) return;
+    if (buildCardViewState(this.hass, this._config).boost.active) return;
     await this._withPending(() =>
       setFanOverride(this.hass!, this._resolvedConfig(), event.detail.value),
     );

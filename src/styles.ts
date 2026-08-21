@@ -137,6 +137,16 @@ export const cardStyles = css`
     border-color: var(--primary-color, #03a9f4);
   }
 
+  .boost-extend {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .boost-cancel {
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--primary-text-color);
+  }
+
   .fan-section {
     margin-top: -4px;
   }

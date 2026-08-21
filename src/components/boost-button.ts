@@ -1,4 +1,4 @@
-import { LitElement, html } from "lit";
+import { LitElement, css, html, nothing } from "lit";
 import { customElement, property } from "lit/decorators.js";
 import { cardStyles } from "../styles";
 
@@ -9,26 +9,62 @@ export class BoostButton extends LitElement {
   @property({ type: Boolean }) hasCancel = false;
   @property({ type: String }) remaining: string | null = null;
 
-  static styles = [cardStyles];
+  static styles = [
+    cardStyles,
+    css`
+      :host {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+      }
+    `,
+  ];
 
   render() {
-    const label = this.active
-      ? this.remaining
-        ? `Boost ${this.remaining}`
-        : "Boost active"
-      : "Boost";
+    if (this.active) {
+      const remainingLabel = this.remaining ?? "Boost";
+      const extendLabel = this.remaining
+        ? `Boost remaining ${this.remaining}. Click to extend.`
+        : "Extend boost";
+
+      return html`
+        <button
+          class="boost-button active boost-extend"
+          type="button"
+          ?disabled=${this.disabled}
+          aria-label=${extendLabel}
+          @click=${this._handleClick}
+        >
+          <span aria-live="polite">${remainingLabel}</span>
+        </button>
+        ${
+          this.hasCancel
+            ? html`
+                <button
+                  class="boost-cancel"
+                  type="button"
+                  ?disabled=${this.disabled}
+                  aria-label="Cancel boost"
+                  @click=${this._handleCancelClick}
+                >
+                  ×
+                </button>
+              `
+            : nothing
+        }
+      `;
+    }
 
     return html`
       <button
-        class="boost-button ${this.active ? "active" : ""}"
+        class="boost-button"
         type="button"
         ?disabled=${this.disabled}
-        aria-label=${this.active ? "Boost active" : "Start boost"}
-        aria-pressed=${this.active ? "true" : "false"}
+        aria-label="Start boost"
+        aria-pressed="false"
         @click=${this._handleClick}
-        @contextmenu=${this._handleContextMenu}
       >
-        <span aria-live="polite">${label}</span>
+        <span>Boost</span>
       </button>
     `;
   }
@@ -40,9 +76,9 @@ export class BoostButton extends LitElement {
     );
   }
 
-  private _handleContextMenu(event: Event) {
-    if (!this.hasCancel || !this.active) return;
+  private _handleCancelClick(event: Event) {
     event.preventDefault();
+    event.stopPropagation();
     this.dispatchEvent(
       new CustomEvent("boost-cancel", { bubbles: true, composed: true }),
     );

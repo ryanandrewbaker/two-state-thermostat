@@ -38,7 +38,6 @@ function makeClimate(overrides: Partial<HassEntity> = {}): HassEntity {
       boost_timer_entity: "timer.family_room_climate_boost",
       power_on_mode: "heat_cool",
       target_step: 0.5,
-      minimum_target_separation: 1,
       fan_options: ["quiet", "low", "medium", "high"],
     },
     ...overrides,
@@ -249,8 +248,37 @@ describe("resolveCardConfig", () => {
 
     expect(resolved.power_on_mode).toBe("heat_cool");
     expect(resolved.target_step).toBe(0.5);
-    expect(resolved.minimum_target_separation).toBe(1);
+    expect(resolved.minimum_target_separation).toBe(2);
     expect(resolved.show_countdown).toBe(true);
+  });
+
+  it("keeps an explicit Lovelace minimum_target_separation", () => {
+    const resolved = resolveCardConfig(hass, {
+      type: "custom:two-state-thermostat",
+      entity: "climate.family_room_auto_climate",
+      minimum_target_separation: 1,
+    });
+
+    expect(resolved.minimum_target_separation).toBe(1);
+  });
+
+  it("uses the climate attribute for minimum_target_separation when YAML omits it", () => {
+    const hassWithGap = makeHass({
+      ...familyRoomEntities,
+      "climate.family_room_auto_climate": makeClimate({
+        attributes: {
+          ...makeClimate().attributes,
+          minimum_target_separation: 1.5,
+        },
+      }),
+    });
+
+    const resolved = resolveCardConfig(hassWithGap, {
+      type: "custom:two-state-thermostat",
+      entity: "climate.family_room_auto_climate",
+    });
+
+    expect(resolved.minimum_target_separation).toBe(1.5);
   });
 
   it("omits optional entities when not discovered", () => {

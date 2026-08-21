@@ -8,8 +8,9 @@ Please keep these constraints intact in any contribution:
 
 1. The card must **never** call `climate.set_fan_mode`.
 2. The card must **never** call services on a physical split-system climate entity.
-3. Thermostat logic (boost timers, hysteresis, fan staging) belongs in Home Assistant, not JavaScript.
+3. Thermostat logic (boost timers, snapshots, restore, hysteresis, system-wide target-gap enforcement, fan staging) belongs in Home Assistant, not JavaScript.
 4. Auto fan means controller-managed explicit speeds, not the appliance native auto mode.
+5. User-directed heat/cool adjustments in the card are directional: the changed target is authoritative; the opposite target moves only to preserve `minimum_target_separation`.
 
 ## Development setup
 

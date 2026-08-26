@@ -157,6 +157,30 @@ describe("discoverEntitiesByNaming", () => {
     expect(discovered.boost_timer_entity).toBe("timer.family_room_climate_boost");
   });
 
+  it("discovers optional dry and humidity companions from naming", () => {
+    const hass = makeHass({
+      ...familyRoomEntities,
+      "switch.family_room_dry_mode": {
+        entity_id: "switch.family_room_dry_mode",
+        state: "off",
+        attributes: {},
+      },
+      "sensor.family_room_humidity": {
+        entity_id: "sensor.family_room_humidity",
+        state: "59",
+        attributes: {},
+      },
+    });
+
+    const discovered = discoverEntitiesByNaming(
+      hass,
+      "climate.family_room_auto_climate",
+    );
+
+    expect(discovered.dry_entity).toBe("switch.family_room_dry_mode");
+    expect(discovered.humidity_entity).toBe("sensor.family_room_humidity");
+  });
+
   it("does not match entities from another room", () => {
     const hass = makeHass({
       ...familyRoomEntities,
@@ -208,6 +232,18 @@ describe("resolveCardConfig", () => {
     );
     expect(resolved.boost_script_entity).toBe("script.family_room_climate_boost");
     expect(resolved.usesHvacActionFallback).toBe(false);
+  });
+
+  it("resolves explicit dry_entity and humidity_entity", () => {
+    const resolved = resolveCardConfig(hass, {
+      type: "custom:two-state-thermostat",
+      entity: "climate.family_room_auto_climate",
+      dry_entity: "switch.family_room_dry_mode",
+      humidity_entity: "sensor.family_room_humidity",
+    });
+
+    expect(resolved.dry_entity).toBe("switch.family_room_dry_mode");
+    expect(resolved.humidity_entity).toBe("sensor.family_room_humidity");
   });
 
   it("lets explicit config override attributes", () => {
@@ -289,6 +325,8 @@ describe("resolveCardConfig", () => {
 
     expect(resolved.temperature_entity).toBeUndefined();
     expect(resolved.boost_script_entity).toBeUndefined();
+    expect(resolved.dry_entity).toBeUndefined();
+    expect(resolved.humidity_entity).toBeUndefined();
     expect(resolved.usesHvacActionFallback).toBe(true);
   });
 

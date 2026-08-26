@@ -22,10 +22,12 @@ import type {
   BoostState,
   CardViewState,
   ClimateRange,
+  DryState,
   FanOption,
   FanState,
   HassEntity,
   HomeAssistant,
+  HumidityState,
   OperatingStateKey,
   RawCardConfig,
   ResolvedCardConfig,
@@ -261,18 +263,24 @@ export function validateRuntime(
     }
   }
 
-  if (config.usesHvacActionFallback) {
-    warnings.push(
-      "Boost/Maintain feedback requires an operating-state sensor; using climate hvac_action instead",
-    );
-  } else {
-    const operating = getEntity(hass, config.operating_state_entity);
-    if (!operating) {
-      errors.push(`Operating state entity not found: ${config.operating_state_entity}`);
-    } else if (!isEntityAvailable(operating)) {
-      errors.push(
-        `Operating state entity unavailable: ${config.operating_state_entity}`,
+  const dryActive = getDryState(hass, config).active;
+
+  if (!dryActive) {
+    if (config.usesHvacActionFallback) {
+      warnings.push(
+        "Boost/Maintain feedback requires an operating-state sensor; using climate hvac_action instead",
       );
+    } else {
+      const operating = getEntity(hass, config.operating_state_entity);
+      if (!operating) {
+        errors.push(
+          `Operating state entity not found: ${config.operating_state_entity}`,
+        );
+      } else if (!isEntityAvailable(operating)) {
+        errors.push(
+          `Operating state entity unavailable: ${config.operating_state_entity}`,
+        );
+      }
     }
   }
 
@@ -281,6 +289,8 @@ export function validateRuntime(
     { id: config.boost_timer_entity, label: "Boost timer" },
     { id: config.boost_script_entity, label: "Boost script" },
     { id: config.boost_active_entity, label: "Boost active" },
+    { id: config.dry_entity, label: "Dry mode" },
+    { id: config.humidity_entity, label: "Humidity sensor" },
   ];
 
   for (const { id, label } of optionalEntities) {
@@ -546,6 +556,47 @@ export function getBoostState(
   };
 }
 
+export function getDryState(
+  hass: HomeAssistant | undefined,
+  config: ResolvedCardConfig,
+): DryState {
+  const configured = Boolean(config.dry_entity);
+  if (!configured) {
+    return { configured: false, active: false };
+  }
+
+  const entity = getEntity(hass, config.dry_entity);
+  return {
+    configured: true,
+    active: entity?.state === "on",
+  };
+}
+
+export function getHumidityState(
+  hass: HomeAssistant | undefined,
+  config: ResolvedCardConfig,
+): HumidityState {
+  const configured = Boolean(config.humidity_entity);
+  if (!configured) {
+    return { configured: false, value: null };
+  }
+
+  const entity = getEntity(hass, config.humidity_entity);
+  if (!isEntityAvailable(entity)) {
+    return { configured: true, value: null };
+  }
+
+  return {
+    configured: true,
+    value: parseNumber(entity?.state),
+  };
+}
+
+export function formatHumidity(value: number | null): string {
+  if (value === null || !Number.isFinite(value)) return "—%";
+  return `${Math.round(value)}%`;
+}
+
 export function buildCardViewState(
   hass: HomeAssistant | undefined,
   rawConfig: RawCardConfig,
@@ -553,11 +604,16 @@ export function buildCardViewState(
   const config = resolveCardConfig(hass, rawConfig);
   const configErrors = validateConfig(config);
   const runtime = validateRuntime(hass, config);
+  const dry = getDryState(hass, config);
+  const humidity = getHumidityState(hass, config);
 
   let operatingState: OperatingStateKey;
   let operatingLabel: string;
 
-  if (config.usesHvacActionFallback) {
+  if (dry.active) {
+    operatingState = "dry";
+    operatingLabel = getOperatingLabel("dry", config.state_map);
+  } else if (config.usesHvacActionFallback) {
     const climate = getEntity(hass, config.entity);
     const hvacAction =
       typeof climate?.attributes.hvac_action === "string"
@@ -578,6 +634,8 @@ export function buildCardViewState(
     climate: getClimateRange(hass, config),
     fan: getFanState(hass, config),
     boost: getBoostState(hass, config),
+    dry,
+    humidity,
     errors: [...configErrors, ...runtime.errors],
     warnings: runtime.warnings,
   };
@@ -646,7 +704,7 @@ export function getArcGeometry(climate: ClimateRange): ArcGeometry {
   };
 }
 
-export type StateLabelTone = "heat" | "cool" | "neutral";
+export type StateLabelTone = "heat" | "cool" | "dry" | "neutral";
 
 export function getStateLabelTone(state: OperatingStateKey): StateLabelTone {
   switch (state) {
@@ -656,6 +714,8 @@ export function getStateLabelTone(state: OperatingStateKey): StateLabelTone {
     case "boost_cooling":
     case "maintain_cooling":
       return "cool";
+    case "dry":
+      return "dry";
     default:
       return "neutral";
   }
@@ -857,6 +917,14 @@ export function describeArcState(state: OperatingStateKey): {
       return {
         warmActive: false,
         coolActive: true,
+        warmStrong: false,
+        coolStrong: false,
+        subdued: false,
+      };
+    case "dry":
+      return {
+        warmActive: false,
+        coolActive: false,
         warmStrong: false,
         coolStrong: false,
         subdued: false,

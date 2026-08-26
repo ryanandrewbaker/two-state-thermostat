@@ -3,12 +3,15 @@ import {
   assertAllowedService,
   buildBoostCall,
   buildBoostCancelCall,
+  buildDryOffCall,
   buildFanAutoOnCall,
   buildFanOverrideCall,
   buildPowerOffCall,
   buildPowerOnCall,
   buildSetTemperatureCall,
   callService,
+  cancelDry,
+  setPower,
 } from "../src/services";
 import type { HomeAssistant, ResolvedCardConfig } from "../src/types";
 
@@ -130,6 +133,105 @@ describe("service guards", () => {
     expect(calls).toEqual([
       { domain: "climate", service: "set_hvac_mode" },
       { domain: "climate", service: "set_temperature" },
+    ]);
+  });
+
+  it("allows switch.turn_off", () => {
+    expect(() => assertAllowedService("switch", "turn_off")).not.toThrow();
+  });
+});
+
+describe("dry and power-off services", () => {
+  const dryConfig: ResolvedCardConfig = {
+    ...config,
+    dry_entity: "switch.family_room_dry_mode",
+  };
+
+  it("builds dry off from the configured entity", () => {
+    expect(buildDryOffCall(dryConfig)).toEqual({
+      domain: "switch",
+      service: "turn_off",
+      data: { entity_id: "switch.family_room_dry_mode" },
+    });
+  });
+
+  it("power off without dry_entity only turns off climate", async () => {
+    const calls: Array<{
+      domain: string;
+      service: string;
+      data?: Record<string, unknown>;
+    }> = [];
+    const hass: HomeAssistant = {
+      states: {},
+      callService: async (domain, service, data) => {
+        calls.push({ domain, service, data });
+      },
+    };
+
+    await setPower(hass, config, false);
+    expect(calls).toEqual([
+      {
+        domain: "climate",
+        service: "set_hvac_mode",
+        data: {
+          entity_id: "climate.family_room_auto_climate",
+          hvac_mode: "off",
+        },
+      },
+    ]);
+  });
+
+  it("power off with dry_entity turns off dry then climate", async () => {
+    const calls: Array<{
+      domain: string;
+      service: string;
+      data?: Record<string, unknown>;
+    }> = [];
+    const hass: HomeAssistant = {
+      states: {},
+      callService: async (domain, service, data) => {
+        calls.push({ domain, service, data });
+      },
+    };
+
+    await setPower(hass, dryConfig, false);
+    expect(calls).toEqual([
+      {
+        domain: "switch",
+        service: "turn_off",
+        data: { entity_id: "switch.family_room_dry_mode" },
+      },
+      {
+        domain: "climate",
+        service: "set_hvac_mode",
+        data: {
+          entity_id: "climate.family_room_auto_climate",
+          hvac_mode: "off",
+        },
+      },
+    ]);
+  });
+
+  it("cancelDry does not turn climate on", async () => {
+    const calls: Array<{
+      domain: string;
+      service: string;
+      data?: Record<string, unknown>;
+    }> = [];
+    const hass: HomeAssistant = {
+      states: {},
+      callService: async (domain, service, data) => {
+        calls.push({ domain, service, data });
+      },
+    };
+
+    await cancelDry(hass, dryConfig);
+    expect(calls).toEqual([
+      {
+        domain: "switch",
+        service: "turn_off",
+        data: { entity_id: "switch.family_room_dry_mode" },
+      },
     ]);
   });
 });

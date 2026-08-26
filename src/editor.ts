@@ -234,6 +234,8 @@ export class TwoStageThermostatEditor extends LitElement {
               "input_boolean",
             ])}
             ${this._entityPicker("boost_timer_entity", "Boost timer", ["timer"])}
+            ${this._entityPicker("dry_entity", "Dry mode entity", ["switch"])}
+            ${this._entityPicker("humidity_entity", "Humidity entity", ["sensor"])}
 
             <div class="row">
               <label for="power_on_mode">Power on mode</label>

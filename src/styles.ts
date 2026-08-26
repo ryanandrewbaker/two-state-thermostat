@@ -18,6 +18,7 @@ export const cardStyles = css`
     flex-direction: column;
     gap: 16px;
     min-width: 0;
+    --dry-color: #e6c84a;
   }
 
   .title {
@@ -124,6 +125,11 @@ export const cardStyles = css`
     color: var(--primary-text-color);
   }
 
+  .power-button.on.dry {
+    border-color: color-mix(in srgb, var(--dry-color, #e6c84a) 65%, transparent);
+    background: color-mix(in srgb, var(--dry-color, #e6c84a) 22%, transparent);
+  }
+
   .boost-button {
     min-width: auto;
     border-radius: 999px;
@@ -135,6 +141,11 @@ export const cardStyles = css`
   .boost-button.active {
     background: color-mix(in srgb, var(--primary-color, #03a9f4) 18%, transparent);
     border-color: var(--primary-color, #03a9f4);
+  }
+
+  .boost-button.switch-mode {
+    border-color: color-mix(in srgb, var(--dry-color, #e6c84a) 65%, transparent);
+    color: var(--dry-color, #e6c84a);
   }
 
   .boost-extend {
@@ -203,6 +214,9 @@ export const dialStyles = css`
   .dial-wrap {
     --heat-color: #f0884a;
     --cool-color: #5a9ae8;
+    --boost-heat-color: #c4351a;
+    --boost-cool-color: #9ed2ff;
+    --dry-color: #e6c84a;
     width: 100%;
     margin: 0 auto;
     aspect-ratio: 1;
@@ -265,6 +279,7 @@ export const dialStyles = css`
   }
 
   .arc-heat.boost {
+    stroke: var(--boost-heat-color);
     stroke-width: 16;
     opacity: 1;
     stroke-dasharray: 5 4;
@@ -301,10 +316,19 @@ export const dialStyles = css`
   }
 
   .arc-cool.boost {
+    stroke: var(--boost-cool-color);
     stroke-width: 16;
     opacity: 1;
     stroke-dasharray: 5 4;
     stroke-linecap: round;
+  }
+
+  .arc-dry {
+    fill: none;
+    stroke: var(--dry-color);
+    stroke-width: 12;
+    stroke-linecap: round;
+    opacity: 0.88;
   }
 
   .subdued .arc-heat,
@@ -359,11 +383,11 @@ export const dialStyles = css`
   }
 
   .boost-cap.heat {
-    fill: var(--heat-color);
+    fill: var(--boost-heat-color);
   }
 
   .boost-cap.cool {
-    fill: var(--cool-color);
+    fill: var(--boost-cool-color);
   }
 
   .center {
@@ -391,6 +415,11 @@ export const dialStyles = css`
 
   .state-label.cooling {
     color: var(--cool-color);
+    font-weight: 500;
+  }
+
+  .state-label.drying {
+    color: var(--dry-color);
     font-weight: 500;
   }
 
@@ -423,6 +452,13 @@ export const dialStyles = css`
     margin-top: 8px;
     font-size: 0.8125rem;
     color: var(--secondary-text-color);
+  }
+
+  .humidity {
+    margin-top: 6px;
+    font-size: 0.8125rem;
+    color: var(--secondary-text-color);
+    font-variant-numeric: tabular-nums;
   }
 
   .range-heat.active,

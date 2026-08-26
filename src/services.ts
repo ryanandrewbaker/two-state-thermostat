@@ -110,6 +110,22 @@ export function buildBoostCancelCall(config: ResolvedCardConfig): ServiceCall {
   };
 }
 
+function entityDomain(entityId: string): string {
+  const separator = entityId.indexOf(".");
+  return separator === -1 ? entityId : entityId.slice(0, separator);
+}
+
+export function buildDryOffCall(config: ResolvedCardConfig): ServiceCall | null {
+  if (!config.dry_entity) return null;
+  return {
+    domain: entityDomain(config.dry_entity),
+    service: "turn_off",
+    data: {
+      entity_id: config.dry_entity,
+    },
+  };
+}
+
 export async function callService(
   hass: HomeAssistant,
   call: ServiceCall,
@@ -123,7 +139,12 @@ export async function setPower(
   config: ResolvedCardConfig,
   on: boolean,
 ): Promise<void> {
-  await callService(hass, on ? buildPowerOnCall(config) : buildPowerOffCall(config));
+  if (!on) {
+    await cancelDry(hass, config);
+    await callService(hass, buildPowerOffCall(config));
+    return;
+  }
+  await callService(hass, buildPowerOnCall(config));
 }
 
 export async function setTemperature(
@@ -173,4 +194,13 @@ export async function cancelBoost(
 ): Promise<void> {
   if (!config.boost_cancel_script_entity) return;
   await callService(hass, buildBoostCancelCall(config));
+}
+
+export async function cancelDry(
+  hass: HomeAssistant,
+  config: ResolvedCardConfig,
+): Promise<void> {
+  const call = buildDryOffCall(config);
+  if (!call) return;
+  await callService(hass, call);
 }

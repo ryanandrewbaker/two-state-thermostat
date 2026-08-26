@@ -22,6 +22,7 @@ import {
 } from "./state";
 import {
   cancelBoost,
+  cancelDry,
   setFanAuto,
   setFanOverride,
   setPower,
@@ -109,35 +110,48 @@ export class TwoStageThermostatCard extends LitElement {
           <div class="dial-section">
             <climate-dial
               .viewState=${view}
-              .disabled=${disabled || view.boost.active}
+              .disabled=${disabled}
               .minimumTargetSeparation=${getMinimumTargetSeparation(resolved)}
               @target-change=${this._handleTargetChange}
             ></climate-dial>
             <div class="dial-controls">
               <power-button
-                .on=${view.climate.isOn}
+                .on=${view.climate.isOn || view.dry.active}
+                .dry=${view.dry.active}
                 .disabled=${disabled}
                 @power-toggle=${this._togglePower}
               ></power-button>
               ${
-                view.boost.available
+                view.dry.active
                   ? html`
                       <boost-button
-                        .active=${view.boost.active}
+                        .switchMode=${true}
+                        .active=${false}
                         .disabled=${disabled}
-                        .remaining=${view.boost.remaining}
-                        .hasCancel=${view.boost.hasCancel}
-                        @boost-press=${this._handleBoost}
-                        @boost-cancel=${this._handleBoostCancel}
+                        .remaining=${null}
+                        .hasCancel=${false}
+                        @switch-mode=${this._handleSwitchMode}
                       ></boost-button>
                     `
-                  : nothing
+                  : view.boost.available
+                    ? html`
+                        <boost-button
+                          .switchMode=${false}
+                          .active=${view.boost.active}
+                          .disabled=${disabled}
+                          .remaining=${view.boost.remaining}
+                          .hasCancel=${view.boost.hasCancel}
+                          @boost-press=${this._handleBoost}
+                          @boost-cancel=${this._handleBoostCancel}
+                        ></boost-button>
+                      `
+                    : nothing
               }
             </div>
           </div>
 
           ${
-            view.fan.available
+            view.fan.available && !view.dry.active
               ? html`
                   <div class="fan-section">
                     <div class="fan-row">
@@ -204,20 +218,31 @@ export class TwoStageThermostatCard extends LitElement {
     if (!this.hass) return;
     const resolved = this._resolvedConfig();
     const view = buildCardViewState(this.hass, this._config);
-    await this._withPending(() => setPower(this.hass!, resolved, !view.climate.isOn));
+    const systemOn = view.climate.isOn || view.dry.active;
+    await this._withPending(() => setPower(this.hass!, resolved, !systemOn));
   }
 
   private async _handleTargetChange(event: CustomEvent<TargetAdjustment>) {
     if (!this.hass || !event.detail) return;
-    if (buildCardViewState(this.hass, this._config).boost.active) return;
-    await this._withPending(() =>
-      setTemperature(this.hass!, this._resolvedConfig(), event.detail),
-    );
+    const resolved = this._resolvedConfig();
+    const view = buildCardViewState(this.hass, this._config);
+    if (view.dry.active) return;
+    await this._withPending(async () => {
+      if (view.boost.active) {
+        await cancelBoost(this.hass!, resolved);
+      }
+      await setTemperature(this.hass!, resolved, event.detail);
+    });
   }
 
   private async _handleBoost() {
     if (!this.hass) return;
     await this._withPending(() => triggerBoost(this.hass!, this._resolvedConfig()));
+  }
+
+  private async _handleSwitchMode() {
+    if (!this.hass) return;
+    await this._withPending(() => cancelDry(this.hass!, this._resolvedConfig()));
   }
 
   private async _handleBoostCancel() {

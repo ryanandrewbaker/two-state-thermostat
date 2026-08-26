@@ -475,6 +475,7 @@ describe("getStateLabelTone", () => {
     expect(getStateLabelTone("maintain_heating")).toBe("heat");
     expect(getStateLabelTone("boost_cooling")).toBe("cool");
     expect(getStateLabelTone("idle")).toBe("neutral");
+    expect(getStateLabelTone("dry")).toBe("dry");
   });
 });
 

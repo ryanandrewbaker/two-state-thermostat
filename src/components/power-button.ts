@@ -5,6 +5,7 @@ import { cardStyles } from "../styles";
 @customElement("power-button")
 export class PowerButton extends LitElement {
   @property({ type: Boolean }) on = false;
+  @property({ type: Boolean }) dry = false;
   @property({ type: Boolean }) disabled = false;
 
   static styles = [cardStyles];
@@ -12,7 +13,7 @@ export class PowerButton extends LitElement {
   render() {
     return html`
       <button
-        class="power-button ${this.on ? "on" : ""}"
+        class="power-button ${this.on ? "on" : ""} ${this.dry ? "dry" : ""}"
         type="button"
         ?disabled=${this.disabled}
         aria-label=${this.on ? "Turn climate off" : "Turn climate on"}

@@ -39,6 +39,8 @@ const NAMING_PATTERNS: Record<keyof EntityDiscoveryKeys, (base: string) => strin
   boost_cancel_script_entity: (b) => `script.${b}_climate_cancel_boost`,
   boost_active_entity: (b) => `input_boolean.${b}_climate_boost`,
   boost_timer_entity: (b) => `timer.${b}_climate_boost`,
+  dry_entity: (b) => `switch.${b}_dry_mode`,
+  humidity_entity: (b) => `sensor.${b}_humidity`,
 };
 
 type EntityDiscoveryKeys = Pick<
@@ -53,6 +55,8 @@ type EntityDiscoveryKeys = Pick<
   | "boost_cancel_script_entity"
   | "boost_active_entity"
   | "boost_timer_entity"
+  | "dry_entity"
+  | "humidity_entity"
 >;
 
 const CLIMATE_ATTRIBUTE_MAP: Record<keyof EntityDiscoveryKeys, string> = {
@@ -66,6 +70,8 @@ const CLIMATE_ATTRIBUTE_MAP: Record<keyof EntityDiscoveryKeys, string> = {
   boost_cancel_script_entity: "boost_cancel_script_entity",
   boost_active_entity: "boost_active_entity",
   boost_timer_entity: "boost_timer_entity",
+  dry_entity: "dry_entity",
+  humidity_entity: "humidity_entity",
 };
 
 const OPTIONAL_CLIMATE_ATTRIBUTES = {
@@ -302,6 +308,16 @@ export function resolveCardConfig(
       fromAttributes.boost_timer_entity,
       fromNaming.boost_timer_entity,
     ),
+    dry_entity: pickEntityId(
+      rawConfig.dry_entity,
+      fromAttributes.dry_entity,
+      fromNaming.dry_entity,
+    ),
+    humidity_entity: pickEntityId(
+      rawConfig.humidity_entity,
+      fromAttributes.humidity_entity,
+      fromNaming.humidity_entity,
+    ),
     power_on_mode: pickValue(
       rawConfig.power_on_mode,
       fromAttributes.power_on_mode,
@@ -452,6 +468,8 @@ export function buildDiscoverySummary(
     { key: "boost_cancel_script_entity", label: "Boost cancel", optional: true },
     { key: "boost_active_entity", label: "Boost active", optional: true },
     { key: "boost_timer_entity", label: "Boost timer", optional: true },
+    { key: "dry_entity", label: "Dry mode", optional: true },
+    { key: "humidity_entity", label: "Humidity sensor", optional: true },
   ];
 
   return items.map(({ key, label, optional }) => {

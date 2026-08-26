@@ -4,6 +4,7 @@ import {
   adjustTarget,
   clampAngleToArc,
   describeArcState,
+  formatHumidity,
   getArcGeometry,
   getArcRemainingSegments,
   getBoostArcOverlay,
@@ -120,6 +121,7 @@ export class ClimateDial extends LitElement {
   }
 
   private get boostOverlay() {
+    if (this._dragTarget) return null;
     return getBoostArcOverlay(
       this.displayClimate,
       this.viewState.operatingState,
@@ -140,13 +142,17 @@ export class ClimateDial extends LitElement {
   }
 
   render() {
-    const { climate, operatingLabel, operatingState } = this.viewState;
+    const { climate, operatingLabel, operatingState, dry, humidity } = this.viewState;
+    const dryActive = Boolean(dry?.active);
     const displayClimate = this.displayClimate;
-    const overlay = this.boostOverlay;
+    const overlay = dryActive ? null : this.boostOverlay;
     const arc = this.arcState;
     const geo = this.geometry;
     const segments = getArcRemainingSegments(geo, operatingState, this._dragTarget);
     const labelTone = getStateLabelTone(operatingState);
+    const humidityDisplay = humidity?.configured
+      ? formatHumidity(humidity.value)
+      : null;
     const cx = 100;
     const cy = 100;
     const r = 78;
@@ -167,44 +173,65 @@ export class ClimateDial extends LitElement {
           ? overlay.segment.end
           : overlay.segment.start;
     const boostCap = boostCapAngle === null ? null : polar(cx, cy, r, boostCapAngle);
+    const labelClass =
+      labelTone === "heat"
+        ? "heating"
+        : labelTone === "cool"
+          ? "cooling"
+          : labelTone === "dry"
+            ? "drying"
+            : "";
 
     return html`
-      <div class="dial-wrap ${arc.subdued ? "subdued" : ""}">
+      <div class="dial-wrap ${arc.subdued ? "subdued" : ""} ${dryActive ? "dry" : ""}">
         <svg viewBox="0 0 200 200" aria-hidden="true">
           <path class="track" d=${trackPath}></path>
-          ${this._renderArcSegment(cx, cy, r, segments.heatBase, "heat", "base", arc)}
-          ${this._renderArcSegment(
-            cx,
-            cy,
-            r,
-            segments.heatRemaining,
-            "heat",
-            "remaining",
-            arc,
-          )}
-          ${this._renderArcSegment(cx, cy, r, segments.coolBase, "cool", "base", arc)}
-          ${this._renderArcSegment(
-            cx,
-            cy,
-            r,
-            segments.coolRemaining,
-            "cool",
-            "remaining",
-            arc,
-          )}
-          ${this._renderArcSegment(
-            cx,
-            cy,
-            r,
-            overlay?.segment ?? null,
-            overlay?.kind ?? "heat",
-            "boost",
-            arc,
-          )}
-          ${this._renderKnob("low", lowKnob, knobLow, "Heating target")}
-          ${this._renderKnob("high", highKnob, knobHigh, "Cooling target")}
+          ${dryActive ? svg`<path class="arc-dry" d=${trackPath}></path>` : nothing}
+          ${dryActive ? nothing : this._renderArcSegment(cx, cy, r, segments.heatBase, "heat", "base", arc)}
           ${
-            boostCap
+            dryActive
+              ? nothing
+              : this._renderArcSegment(
+                  cx,
+                  cy,
+                  r,
+                  segments.heatRemaining,
+                  "heat",
+                  "remaining",
+                  arc,
+                )
+          }
+          ${dryActive ? nothing : this._renderArcSegment(cx, cy, r, segments.coolBase, "cool", "base", arc)}
+          ${
+            dryActive
+              ? nothing
+              : this._renderArcSegment(
+                  cx,
+                  cy,
+                  r,
+                  segments.coolRemaining,
+                  "cool",
+                  "remaining",
+                  arc,
+                )
+          }
+          ${
+            dryActive
+              ? nothing
+              : this._renderArcSegment(
+                  cx,
+                  cy,
+                  r,
+                  overlay?.segment ?? null,
+                  overlay?.kind ?? "heat",
+                  "boost",
+                  arc,
+                )
+          }
+          ${dryActive ? nothing : this._renderKnob("low", lowKnob, knobLow, "Heating target")}
+          ${dryActive ? nothing : this._renderKnob("high", highKnob, knobHigh, "Cooling target")}
+          ${
+            !dryActive && boostCap
               ? svg`
                   <circle
                     class="boost-cap ${overlay?.kind === "cool" ? "cool" : "heat"}"
@@ -229,13 +256,7 @@ export class ClimateDial extends LitElement {
           }
         </svg>
         <div class="center">
-          <div
-            class="state-label ${
-              labelTone === "heat" ? "heating" : labelTone === "cool" ? "cooling" : ""
-            }"
-          >
-            ${operatingLabel}
-          </div>
+          <div class="state-label ${labelClass}">${operatingLabel}</div>
           <div
             class="temperature"
             aria-label="Current temperature ${this.formatTemp(climate.current)} degrees"
@@ -244,15 +265,33 @@ export class ClimateDial extends LitElement {
             ${temp.dec ? html`<span class="temp-dec">${temp.dec}</span>` : null}
             <span class="temp-unit">°C</span>
           </div>
-          <div class="range">
-            <span class="range-heat ${labelTone === "heat" ? "active" : ""}"
-              >${this.formatTemp(targetLow)}</span
-            >
-            ·
-            <span class="range-cool ${labelTone === "cool" ? "active" : ""}"
-              >${this.formatTemp(targetHigh)}</span
-            >
-          </div>
+          ${
+            humidityDisplay
+              ? html`
+                  <div
+                    class="humidity"
+                    aria-label="Current humidity ${humidityDisplay}"
+                  >
+                    ${humidityDisplay}
+                  </div>
+                `
+              : nothing
+          }
+          ${
+            dryActive
+              ? nothing
+              : html`
+                  <div class="range">
+                    <span class="range-heat ${labelTone === "heat" ? "active" : ""}"
+                      >${this.formatTemp(targetLow)}</span
+                    >
+                    ·
+                    <span class="range-cool ${labelTone === "cool" ? "active" : ""}"
+                      >${this.formatTemp(targetHigh)}</span
+                    >
+                  </div>
+                `
+          }
         </div>
       </div>
     `;

@@ -8,6 +8,7 @@ export class BoostButton extends LitElement {
   @property({ type: Boolean }) disabled = false;
   @property({ type: Boolean }) hasCancel = false;
   @property({ type: String }) remaining: string | null = null;
+  @property({ type: Boolean }) switchMode = false;
 
   static styles = [
     cardStyles,
@@ -21,6 +22,20 @@ export class BoostButton extends LitElement {
   ];
 
   render() {
+    if (this.switchMode) {
+      return html`
+        <button
+          class="boost-button switch-mode"
+          type="button"
+          ?disabled=${this.disabled}
+          aria-label="Switch mode"
+          @click=${this._handleSwitchModeClick}
+        >
+          <span>Switch Mode</span>
+        </button>
+      `;
+    }
+
     if (this.active) {
       const remainingLabel = this.remaining ?? "Boost";
       const extendLabel = this.remaining
@@ -73,6 +88,13 @@ export class BoostButton extends LitElement {
     event.preventDefault();
     this.dispatchEvent(
       new CustomEvent("boost-press", { bubbles: true, composed: true }),
+    );
+  }
+
+  private _handleSwitchModeClick(event: Event) {
+    event.preventDefault();
+    this.dispatchEvent(
+      new CustomEvent("switch-mode", { bubbles: true, composed: true }),
     );
   }
 

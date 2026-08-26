@@ -9,6 +9,7 @@ A Home Assistant Lovelace card for dual-range (heat/cool) climate control with B
 - Dual heating and cooling thermostat range display
 - Current control temperature with responsive SVG dial
 - Operating state from a dedicated sensor (Off, Idle, Boost/Maintain Heating/Cooling)
+- Optional Dry mode from a separate switch entity, with current humidity
 - Power button for the virtual climate entity
 - Boost button with optional countdown from a timer entity; while Boost is active, the countdown extends Boost and a cancel control ends it
 - Automatic or manual fan control via Home Assistant helpers
@@ -91,6 +92,8 @@ boost_script_entity: script.family_room_climate_boost
 boost_cancel_script_entity: script.family_room_climate_cancel_boost
 boost_active_entity: input_boolean.family_room_climate_boost
 boost_timer_entity: timer.family_room_climate_boost
+dry_entity: switch.family_room_dry_mode
+humidity_entity: sensor.family_room_humidity
 power_on_mode: heat_cool
 target_step: 0.5
 show_countdown: true
@@ -126,6 +129,8 @@ When your package exposes the attributes below on the virtual climate entity, us
 | `boost_cancel_script_entity` | Boost cancel script (restore snapshot immediately)                                           |
 | `boost_active_entity`        | Boost active boolean                                                                         |
 | `boost_timer_entity`         | Boost countdown timer                                                                        |
+| `dry_entity`                 | Manually controlled Dry/dehumidify switch (not an HVAC mode of the climate entity)           |
+| `humidity_entity`            | Current room humidity sensor                                                                 |
 | `power_on_mode`              | HVAC mode used when powering on (default: `heat_cool`)                                   |
 | `fan_options`                | Fan speed options (list of strings or `{value, label}` objects)                          |
 | `target_step`                | Target temperature step (default: `0.5`)                                                 |
@@ -148,6 +153,8 @@ boost_script_entity: script.family_room_climate_boost
 boost_cancel_script_entity: script.family_room_climate_cancel_boost
 boost_active_entity: input_boolean.family_room_climate_boost
 boost_timer_entity: timer.family_room_climate_boost
+dry_entity: switch.family_room_dry_mode
+humidity_entity: sensor.family_room_humidity
 power_on_mode: heat_cool
 fan_options:
   - quiet
@@ -199,8 +206,8 @@ On the card:
 
 - Idle: Boost pill starts Boost.
 - Active: remaining time (click to extend / restart the 30-minute timer) and a cancel control (ends Boost immediately).
-- While Boost is active, fan Auto/speed and the heat/cool knobs are locked so they cannot undermine the Boost override.
-- The active heat or cool arc also extends 2°C past the live setpoint (dashed, no knob) so the temporary Boost margin is visible.
+- While Boost is active, fan Auto/speed stay locked so they cannot undermine the High fan override. Moving a heat or cool setpoint cancels Boost and applies the new targets.
+- The active heat or cool arc also extends 2°C past the live setpoint (dashed, no knob) so the temporary Boost margin is visible: darker orange-red for heating, lighter blue for cooling.
 
 The Home Assistant package owns:
 
@@ -212,6 +219,29 @@ The Home Assistant package owns:
 - Target-separation enforcement while applying Boost
 
 Re-triggering Boost (clicking remaining time) must keep the original snapshot and the already-boosted targets, force High fan, and restart the timer. Do not compound the 2°C offset.
+
+### Dry mode
+
+Dry is a **separate, manually started dehumidification cycle**. It is not an HVAC mode of the virtual climate entity. Configure a switch and an optional humidity sensor:
+
+```yaml
+type: custom:two-state-thermostat
+entity: climate.bedroom_auto_climate
+dry_entity: switch.bedroom_dry_mode
+humidity_entity: sensor.bedroom_humidity
+```
+
+Both properties are optional. Cards without `dry_entity` behave exactly as before. Humidity can be shown without Dry, and Dry works without humidity.
+
+While `dry_entity` is `on`:
+
+- The dial uses a yellow **Dry Mode** presentation
+- Current temperature and humidity are shown (no humidity target)
+- Heat/cool targets, knobs, Boost, and fan staging are hidden
+- The Boost control becomes **Switch Mode**, which turns `dry_entity` off and returns to the normal thermostat UI without turning climate on
+- **Off** turns off Dry and the climate entity
+
+When Dry is off, Boost, colours, targets, and fan behaviour are unchanged. Humidity, if configured, remains a small secondary reading next to the current temperature.
 
 ### Resolution order
 
@@ -238,6 +268,7 @@ If attributes are absent, the card can derive companion entities from the contro
 **Optional:**
 
 - External temperature sensor, fan controls, Boost controls, timer, recommendation sensor
+- Dry mode switch and humidity sensor
 
 Missing optional entities omit their UI sections gracefully.
 

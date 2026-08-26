@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2026-08-27
+
+### Added
+
+- Optional Dry mode via `dry_entity` and `humidity_entity`, independent of the climate HVAC mode.
+- While Dry is active, the dial uses a yellow presentation, shows **Dry Mode** with current temperature and humidity, hides heat/cool targets and fan controls, and replaces Boost with **Switch Mode** (cancels Dry without turning the thermostat on).
+- Off turns off both Dry mode and the climate entity when `dry_entity` is configured.
+- Current humidity is shown as a secondary reading in the normal thermostat UI when `humidity_entity` is set.
+
+## [0.4.4] - 2026-08-21
+
+### Changed
+
+- Adjusting a heat or cool setpoint while Boost is active now cancels Boost and applies the new targets, instead of ignoring the change.
+- Boost overlay uses a darker orange-red for heating and a lighter blue for cooling so the temporary margin is easier to see.
+
 ## [0.4.3] - 2026-08-21
 
 ### Fixed

@@ -37,6 +37,8 @@ describe("config validation", () => {
       boost_cancel_script_entity: "script.family_room_climate_cancel_boost",
       boost_active_entity: "input_boolean.family_room_climate_boost",
       boost_timer_entity: "timer.family_room_climate_boost",
+      dry_entity: "switch.family_room_dry_mode",
+      humidity_entity: "sensor.family_room_humidity",
       power_on_mode: "heat_cool",
       fan_options: [
         { value: "quiet", label: "Quiet" },

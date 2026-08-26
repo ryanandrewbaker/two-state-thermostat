@@ -5,6 +5,7 @@ export type OperatingStateKey =
   | "maintain_heating"
   | "boost_cooling"
   | "maintain_cooling"
+  | "dry"
   | "unknown";
 
 export interface FanOption {
@@ -28,6 +29,8 @@ export interface RawCardConfig {
   boost_cancel_script_entity?: string;
   boost_active_entity?: string;
   boost_timer_entity?: string;
+  dry_entity?: string;
+  humidity_entity?: string;
   power_on_mode?: string;
   fan_options?: FanOption[];
   target_step?: number;
@@ -154,6 +157,16 @@ export interface BoostState {
   hasCancel: boolean;
 }
 
+export interface DryState {
+  configured: boolean;
+  active: boolean;
+}
+
+export interface HumidityState {
+  configured: boolean;
+  value: number | null;
+}
+
 export interface CardViewState {
   title: string;
   operatingState: OperatingStateKey;
@@ -161,6 +174,8 @@ export interface CardViewState {
   climate: ClimateRange;
   fan: FanState;
   boost: BoostState;
+  dry: DryState;
+  humidity: HumidityState;
   errors: string[];
   warnings: string[];
 }

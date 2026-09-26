@@ -259,7 +259,11 @@ export function validateRuntime(
   } else {
     const low = parseNumber(climate.attributes.target_temp_low);
     const high = parseNumber(climate.attributes.target_temp_high);
-    if (low === null || high === null) {
+    const hvacMode =
+      typeof climate.attributes.hvac_mode === "string"
+        ? climate.attributes.hvac_mode
+        : climate.state;
+    if (hvacMode !== FAN_ONLY_HVAC_MODE && (low === null || high === null)) {
       errors.push("Climate entity does not expose target_temp_low/high");
     }
   }

@@ -130,6 +130,40 @@ describe("fan only mode", () => {
     card.remove();
   });
 
+  it("keeps the fan dial when heat and cool targets are hidden", async () => {
+    const climate = makeClimate("fan_only");
+    delete climate.attributes.target_temp_low;
+    delete climate.attributes.target_temp_high;
+    const hass = makeHass("fan_only");
+    hass.states["climate.family_room_auto_climate"] = climate;
+
+    const view = buildCardViewState(hass, config);
+    expect(view.errors).toEqual([]);
+    expect(view.operatingLabel).toBe("Fan");
+
+    const { card, dial, fan } = await renderCard(hass);
+    expect(card.shadowRoot?.querySelector(".error")).toBeNull();
+    expect(dial?.shadowRoot?.querySelector(".state-label")?.textContent?.trim()).toBe(
+      "Fan",
+    );
+    expect(fan?.shadowRoot?.querySelector("button")?.getAttribute("aria-pressed")).toBe(
+      "true",
+    );
+    card.remove();
+  });
+
+  it("still errors when heat and cool targets are missing outside fan only", () => {
+    const climate = makeClimate("heat_cool");
+    delete climate.attributes.target_temp_low;
+    delete climate.attributes.target_temp_high;
+    const hass = makeHass("heat_cool");
+    hass.states["climate.family_room_auto_climate"] = climate;
+
+    expect(buildCardViewState(hass, config).errors).toContain(
+      "Climate entity does not expose target_temp_low/high",
+    );
+  });
+
   it("overrides an idle operating sensor while fan only is active", () => {
     const hass = makeHass("fan_only");
     hass.states["sensor.family_room_auto_operating_state"] = {

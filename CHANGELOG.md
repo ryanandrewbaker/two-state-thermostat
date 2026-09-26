@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.1] - 2026-09-26
+
+### Fixed
+
+- Fan-only mode no longer replaces the card with an error when the climate entity hides `target_temp_low` and `target_temp_high`.
+
 ## [0.6.0] - 2026-09-26
 
 ### Added

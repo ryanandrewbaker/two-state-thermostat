@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 2026-09-26
+
+### Added
+
+- Fan button on the dial enables fan-only mode by setting the virtual climate HVAC mode to `fan_only`.
+- While fan only is active, the dial uses a teal **Fan** presentation, hides heat/cool targets and Boost, and keeps fan speed controls available.
+- Pressing the fan button again returns to the configured power-on mode. Power still turns the climate entity off.
+
 ## [0.5.0] - 2026-08-27
 
 ### Added

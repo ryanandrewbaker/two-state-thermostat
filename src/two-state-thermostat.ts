@@ -3,6 +3,7 @@ import { customElement, property, state } from "lit/decorators.js";
 import "./editor";
 import "./components/boost-button";
 import "./components/climate-dial";
+import "./components/fan-mode-button";
 import "./components/fan-slider";
 import "./components/power-button";
 import { isCompatibleClimateEntity } from "./config";
@@ -24,6 +25,7 @@ import {
   cancelBoost,
   cancelDry,
   setFanAuto,
+  setFanOnlyMode,
   setFanOverride,
   setPower,
   setTemperature,
@@ -118,9 +120,21 @@ export class TwoStageThermostatCard extends LitElement {
               <power-button
                 .on=${view.climate.isOn || view.dry.active}
                 .dry=${view.dry.active}
+                .fan=${view.operatingState === "fan"}
                 .disabled=${disabled}
                 @power-toggle=${this._togglePower}
               ></power-button>
+              ${
+                view.dry.active
+                  ? nothing
+                  : html`
+                      <fan-mode-button
+                        .active=${view.operatingState === "fan"}
+                        .disabled=${disabled}
+                        @fan-mode-toggle=${this._toggleFanOnly}
+                      ></fan-mode-button>
+                    `
+              }
               ${
                 view.dry.active
                   ? html`
@@ -133,19 +147,21 @@ export class TwoStageThermostatCard extends LitElement {
                         @switch-mode=${this._handleSwitchMode}
                       ></boost-button>
                     `
-                  : view.boost.available
-                    ? html`
-                        <boost-button
-                          .switchMode=${false}
-                          .active=${view.boost.active}
-                          .disabled=${disabled}
-                          .remaining=${view.boost.remaining}
-                          .hasCancel=${view.boost.hasCancel}
-                          @boost-press=${this._handleBoost}
-                          @boost-cancel=${this._handleBoostCancel}
-                        ></boost-button>
-                      `
-                    : nothing
+                  : view.operatingState === "fan"
+                    ? nothing
+                    : view.boost.available
+                      ? html`
+                          <boost-button
+                            .switchMode=${false}
+                            .active=${view.boost.active}
+                            .disabled=${disabled}
+                            .remaining=${view.boost.remaining}
+                            .hasCancel=${view.boost.hasCancel}
+                            @boost-press=${this._handleBoost}
+                            @boost-cancel=${this._handleBoostCancel}
+                          ></boost-button>
+                        `
+                      : nothing
               }
             </div>
           </div>
@@ -226,7 +242,7 @@ export class TwoStageThermostatCard extends LitElement {
     if (!this.hass || !event.detail) return;
     const resolved = this._resolvedConfig();
     const view = buildCardViewState(this.hass, this._config);
-    if (view.dry.active) return;
+    if (view.dry.active || view.operatingState === "fan") return;
     await this._withPending(async () => {
       if (view.boost.active) {
         await cancelBoost(this.hass!, resolved);
@@ -238,6 +254,20 @@ export class TwoStageThermostatCard extends LitElement {
   private async _handleBoost() {
     if (!this.hass) return;
     await this._withPending(() => triggerBoost(this.hass!, this._resolvedConfig()));
+  }
+
+  private async _toggleFanOnly() {
+    if (!this.hass) return;
+    const resolved = this._resolvedConfig();
+    const view = buildCardViewState(this.hass, this._config);
+    if (view.dry.active) return;
+    const enabling = view.operatingState !== "fan";
+    await this._withPending(async () => {
+      if (enabling && view.boost.active) {
+        await cancelBoost(this.hass!, resolved);
+      }
+      await setFanOnlyMode(this.hass!, resolved, enabling);
+    });
   }
 
   private async _handleSwitchMode() {

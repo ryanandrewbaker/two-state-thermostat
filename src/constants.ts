@@ -3,11 +3,12 @@ import type { FanOption, OperatingStateKey } from "./types";
 export const CARD_TYPE = "two-state-thermostat";
 export const CARD_ELEMENT = "two-state-thermostat";
 export const CARD_NAME = "Two State Thermostat";
-export const CARD_VERSION = "0.5.0";
+export const CARD_VERSION = "0.6.0";
 export const DOCUMENTATION_URL =
   "https://github.com/ryanandrewbaker/two-state-thermostat";
 
 export const DEFAULT_POWER_ON_MODE = "heat_cool";
+export const FAN_ONLY_HVAC_MODE = "fan_only";
 export const DEFAULT_TARGET_STEP = 0.5;
 export const DEFAULT_MINIMUM_TARGET_SEPARATION = 2;
 export const DEFAULT_BOOST_TEMPERATURE_OFFSET = 2;
@@ -29,6 +30,7 @@ export const DEFAULT_STATE_MAP: Record<OperatingStateKey, string> = {
   boost_cooling: "Boost Cooling",
   maintain_cooling: "Maintain Cooling",
   dry: "Dry Mode",
+  fan: "Fan",
   unknown: "Unknown",
 };
 

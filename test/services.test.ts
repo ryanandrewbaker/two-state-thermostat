@@ -5,7 +5,9 @@ import {
   buildBoostCancelCall,
   buildDryOffCall,
   buildFanAutoOnCall,
+  buildFanOnlyCall,
   buildFanOverrideCall,
+  setFanOnlyMode,
   buildPowerOffCall,
   buildPowerOnCall,
   buildSetTemperatureCall,
@@ -67,6 +69,17 @@ describe("service payloads", () => {
         target_temp_low: 22,
         target_temp_high: 27.5,
         hvac_mode: "heat_cool",
+      },
+    });
+  });
+
+  it("builds fan only call without using climate.set_fan_mode", () => {
+    expect(buildFanOnlyCall(config)).toEqual({
+      domain: "climate",
+      service: "set_hvac_mode",
+      data: {
+        entity_id: "climate.family_room_auto_climate",
+        hvac_mode: "fan_only",
       },
     });
   });
@@ -138,6 +151,45 @@ describe("service guards", () => {
 
   it("allows switch.turn_off", () => {
     expect(() => assertAllowedService("switch", "turn_off")).not.toThrow();
+  });
+});
+
+describe("fan only mode", () => {
+  it("enables fan only and returns to the power-on mode", async () => {
+    const calls: Array<{
+      domain: string;
+      service: string;
+      data?: Record<string, unknown>;
+    }> = [];
+    const hass: HomeAssistant = {
+      states: {},
+      callService: async (domain, service, data) => {
+        calls.push({ domain, service, data });
+      },
+    };
+
+    await setFanOnlyMode(hass, config, true);
+    await setFanOnlyMode(hass, config, false);
+
+    expect(calls).toEqual([
+      {
+        domain: "climate",
+        service: "set_hvac_mode",
+        data: {
+          entity_id: "climate.family_room_auto_climate",
+          hvac_mode: "fan_only",
+        },
+      },
+      {
+        domain: "climate",
+        service: "set_hvac_mode",
+        data: {
+          entity_id: "climate.family_room_auto_climate",
+          hvac_mode: "heat_cool",
+        },
+      },
+    ]);
+    expect(calls.some((call) => call.service === "set_fan_mode")).toBe(false);
   });
 });
 

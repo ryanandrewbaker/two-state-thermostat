@@ -11,6 +11,7 @@ A Home Assistant Lovelace card for dual-range (heat/cool) climate control with B
 - Operating state from a dedicated sensor (Off, Idle, Boost/Maintain Heating/Cooling)
 - Optional Dry mode from a separate switch entity, with current humidity
 - Power button for the virtual climate entity
+- Fan button for fan-only mode (circulate air without heating or cooling)
 - Boost button with optional countdown from a timer entity; while Boost is active, the countdown extends Boost and a cancel control ends it
 - Automatic or manual fan control via Home Assistant helpers
 - Theme-aware styling using Home Assistant CSS variables
@@ -242,6 +243,21 @@ While `dry_entity` is `on`:
 - **Off** turns off Dry and the climate entity
 
 When Dry is off, Boost, colours, targets, and fan behaviour are unchanged. Humidity, if configured, remains a small secondary reading next to the current temperature.
+
+### Fan only
+
+The fan button on the dial sets the virtual climate entity to HVAC mode `fan_only`. It does **not** call `climate.set_fan_mode`. Fan speed stays on the existing automatic/manual helpers.
+
+The virtual climate entity must accept `fan_only` in `hvac_modes` and run the fan without heating or cooling while that mode is active.
+
+On the card:
+
+- Off or heat/cool: the fan button starts fan only.
+- Fan only: the button returns to `power_on_mode` (default `heat_cool`). Power still turns the climate entity off.
+- The dial shows **Fan**, current temperature, and humidity. Heat/cool targets, knobs, and Boost are hidden.
+- Fan Auto and speed stay available so the circulating fan can still be staged.
+- Starting fan only while Boost is active cancels Boost first, so the Boost timer cannot restore heat/cool over the top of fan only.
+- Dry mode still takes over the dial. The fan button is hidden until Dry ends.
 
 ### Resolution order
 

@@ -6,6 +6,7 @@ export type OperatingStateKey =
   | "boost_cooling"
   | "maintain_cooling"
   | "dry"
+  | "fan"
   | "unknown";
 
 export interface FanOption {

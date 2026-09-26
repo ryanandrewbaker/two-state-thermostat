@@ -16,6 +16,7 @@ import {
   DEFAULT_POWER_ON_MODE,
   DEFAULT_STATE_MAP,
   DEFAULT_TARGET_STEP,
+  FAN_ONLY_HVAC_MODE,
 } from "./constants";
 import type {
   ArcGeometry,
@@ -606,6 +607,7 @@ export function buildCardViewState(
   const runtime = validateRuntime(hass, config);
   const dry = getDryState(hass, config);
   const humidity = getHumidityState(hass, config);
+  const climate = getClimateRange(hass, config);
 
   let operatingState: OperatingStateKey;
   let operatingLabel: string;
@@ -613,11 +615,14 @@ export function buildCardViewState(
   if (dry.active) {
     operatingState = "dry";
     operatingLabel = getOperatingLabel("dry", config.state_map);
+  } else if (climate.hvacMode === FAN_ONLY_HVAC_MODE) {
+    operatingState = "fan";
+    operatingLabel = getOperatingLabel("fan", config.state_map);
   } else if (config.usesHvacActionFallback) {
-    const climate = getEntity(hass, config.entity);
+    const climateEntity = getEntity(hass, config.entity);
     const hvacAction =
-      typeof climate?.attributes.hvac_action === "string"
-        ? climate.attributes.hvac_action
+      typeof climateEntity?.attributes.hvac_action === "string"
+        ? climateEntity.attributes.hvac_action
         : undefined;
     operatingState = normalizeOperatingStateFromHvacAction(hvacAction);
     operatingLabel = getDegradedOperatingLabel(hvacAction);
@@ -631,7 +636,7 @@ export function buildCardViewState(
     title: formatCardTitle(hass, rawConfig, config.entity),
     operatingState,
     operatingLabel,
-    climate: getClimateRange(hass, config),
+    climate,
     fan: getFanState(hass, config),
     boost: getBoostState(hass, config),
     dry,
@@ -704,7 +709,7 @@ export function getArcGeometry(climate: ClimateRange): ArcGeometry {
   };
 }
 
-export type StateLabelTone = "heat" | "cool" | "dry" | "neutral";
+export type StateLabelTone = "heat" | "cool" | "dry" | "fan" | "neutral";
 
 export function getStateLabelTone(state: OperatingStateKey): StateLabelTone {
   switch (state) {
@@ -716,6 +721,8 @@ export function getStateLabelTone(state: OperatingStateKey): StateLabelTone {
       return "cool";
     case "dry":
       return "dry";
+    case "fan":
+      return "fan";
     default:
       return "neutral";
   }
@@ -922,6 +929,7 @@ export function describeArcState(state: OperatingStateKey): {
         subdued: false,
       };
     case "dry":
+    case "fan":
       return {
         warmActive: false,
         coolActive: false,

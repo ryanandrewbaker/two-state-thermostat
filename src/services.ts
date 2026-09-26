@@ -1,4 +1,8 @@
-import { ALLOWED_SERVICE_DOMAINS, FORBIDDEN_SERVICES } from "./constants";
+import {
+  ALLOWED_SERVICE_DOMAINS,
+  FAN_ONLY_HVAC_MODE,
+  FORBIDDEN_SERVICES,
+} from "./constants";
 import { getResolvedPowerOnMode } from "./state";
 import type { HomeAssistant, ResolvedCardConfig, TargetAdjustment } from "./types";
 
@@ -25,6 +29,17 @@ export function buildPowerOnCall(config: ResolvedCardConfig): ServiceCall {
     data: {
       entity_id: config.climate_entity,
       hvac_mode: getResolvedPowerOnMode(config),
+    },
+  };
+}
+
+export function buildFanOnlyCall(config: ResolvedCardConfig): ServiceCall {
+  return {
+    domain: "climate",
+    service: "set_hvac_mode",
+    data: {
+      entity_id: config.climate_entity,
+      hvac_mode: FAN_ONLY_HVAC_MODE,
     },
   };
 }
@@ -132,6 +147,17 @@ export async function callService(
 ): Promise<void> {
   assertAllowedService(call.domain, call.service);
   await hass.callService(call.domain, call.service, call.data);
+}
+
+export async function setFanOnlyMode(
+  hass: HomeAssistant,
+  config: ResolvedCardConfig,
+  enabled: boolean,
+): Promise<void> {
+  await callService(
+    hass,
+    enabled ? buildFanOnlyCall(config) : buildPowerOnCall(config),
+  );
 }
 
 export async function setPower(

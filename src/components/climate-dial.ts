@@ -144,8 +144,10 @@ export class ClimateDial extends LitElement {
   render() {
     const { climate, operatingLabel, operatingState, dry, humidity } = this.viewState;
     const dryActive = Boolean(dry?.active);
+    const fanActive = operatingState === "fan";
+    const simplified = dryActive || fanActive;
     const displayClimate = this.displayClimate;
-    const overlay = dryActive ? null : this.boostOverlay;
+    const overlay = simplified ? null : this.boostOverlay;
     const arc = this.arcState;
     const geo = this.geometry;
     const segments = getArcRemainingSegments(geo, operatingState, this._dragTarget);
@@ -180,16 +182,23 @@ export class ClimateDial extends LitElement {
           ? "cooling"
           : labelTone === "dry"
             ? "drying"
-            : "";
+            : labelTone === "fan"
+              ? "fan"
+              : "";
 
     return html`
-      <div class="dial-wrap ${arc.subdued ? "subdued" : ""} ${dryActive ? "dry" : ""}">
+      <div
+        class="dial-wrap ${arc.subdued ? "subdued" : ""} ${dryActive ? "dry" : ""} ${
+          fanActive ? "fan" : ""
+        }"
+      >
         <svg viewBox="0 0 200 200" aria-hidden="true">
           <path class="track" d=${trackPath}></path>
           ${dryActive ? svg`<path class="arc-dry" d=${trackPath}></path>` : nothing}
-          ${dryActive ? nothing : this._renderArcSegment(cx, cy, r, segments.heatBase, "heat", "base", arc)}
+          ${fanActive ? svg`<path class="arc-fan" d=${trackPath}></path>` : nothing}
+          ${simplified ? nothing : this._renderArcSegment(cx, cy, r, segments.heatBase, "heat", "base", arc)}
           ${
-            dryActive
+            simplified
               ? nothing
               : this._renderArcSegment(
                   cx,
@@ -201,9 +210,9 @@ export class ClimateDial extends LitElement {
                   arc,
                 )
           }
-          ${dryActive ? nothing : this._renderArcSegment(cx, cy, r, segments.coolBase, "cool", "base", arc)}
+          ${simplified ? nothing : this._renderArcSegment(cx, cy, r, segments.coolBase, "cool", "base", arc)}
           ${
-            dryActive
+            simplified
               ? nothing
               : this._renderArcSegment(
                   cx,
@@ -216,7 +225,7 @@ export class ClimateDial extends LitElement {
                 )
           }
           ${
-            dryActive
+            simplified
               ? nothing
               : this._renderArcSegment(
                   cx,
@@ -228,10 +237,10 @@ export class ClimateDial extends LitElement {
                   arc,
                 )
           }
-          ${dryActive ? nothing : this._renderKnob("low", lowKnob, knobLow, "Heating target")}
-          ${dryActive ? nothing : this._renderKnob("high", highKnob, knobHigh, "Cooling target")}
+          ${simplified ? nothing : this._renderKnob("low", lowKnob, knobLow, "Heating target")}
+          ${simplified ? nothing : this._renderKnob("high", highKnob, knobHigh, "Cooling target")}
           ${
-            !dryActive && boostCap
+            !simplified && boostCap
               ? svg`
                   <circle
                     class="boost-cap ${overlay?.kind === "cool" ? "cool" : "heat"}"
@@ -278,7 +287,7 @@ export class ClimateDial extends LitElement {
               : nothing
           }
           ${
-            dryActive
+            simplified
               ? nothing
               : html`
                   <div class="range">

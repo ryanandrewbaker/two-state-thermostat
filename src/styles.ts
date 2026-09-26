@@ -19,6 +19,7 @@ export const cardStyles = css`
     gap: 16px;
     min-width: 0;
     --dry-color: #e6c84a;
+    --fan-color: #4db6ac;
   }
 
   .title {
@@ -66,7 +67,7 @@ export const cardStyles = css`
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
   }
 
   .secondary-status {
@@ -128,6 +129,23 @@ export const cardStyles = css`
   .power-button.on.dry {
     border-color: color-mix(in srgb, var(--dry-color, #e6c84a) 65%, transparent);
     background: color-mix(in srgb, var(--dry-color, #e6c84a) 22%, transparent);
+  }
+
+  .power-button.on.fan {
+    border-color: color-mix(in srgb, var(--fan-color, #4db6ac) 65%, transparent);
+    background: color-mix(in srgb, var(--fan-color, #4db6ac) 22%, transparent);
+  }
+
+  .fan-mode-button.active {
+    border-color: color-mix(in srgb, var(--fan-color, #4db6ac) 70%, transparent);
+    background: color-mix(in srgb, var(--fan-color, #4db6ac) 22%, transparent);
+    color: var(--fan-color, #4db6ac);
+  }
+
+  .fan-mode-button svg {
+    width: 18px;
+    height: 18px;
+    display: block;
   }
 
   .boost-button {
@@ -217,6 +235,7 @@ export const dialStyles = css`
     --boost-heat-color: #c4351a;
     --boost-cool-color: #9ed2ff;
     --dry-color: #e6c84a;
+    --fan-color: #4db6ac;
     width: 100%;
     margin: 0 auto;
     aspect-ratio: 1;
@@ -331,6 +350,14 @@ export const dialStyles = css`
     opacity: 0.88;
   }
 
+  .arc-fan {
+    fill: none;
+    stroke: var(--fan-color);
+    stroke-width: 12;
+    stroke-linecap: round;
+    opacity: 0.88;
+  }
+
   .subdued .arc-heat,
   .subdued .arc-cool {
     opacity: 0.16;
@@ -420,6 +447,11 @@ export const dialStyles = css`
 
   .state-label.drying {
     color: var(--dry-color);
+    font-weight: 500;
+  }
+
+  .state-label.fan {
+    color: var(--fan-color);
     font-weight: 500;
   }
 
